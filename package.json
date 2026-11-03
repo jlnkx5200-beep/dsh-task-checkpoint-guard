@@ -1,0 +1,62 @@
+{
+  "name": "dsh-task-checkpoint-guard",
+  "version": "0.1.0",
+  "description": "Durable task checkpoints and safe, bounded recovery for DeepSeek Harness agents.",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "agent",
+    "checkpoint",
+    "task-recovery",
+    "persistence",
+    "ai-agent"
+  ],
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "docs/architecture.md",
+    "docs/configuration.md",
+    "docs/troubleshooting.md",
+    "docs/license-decision.md",
+    "examples/example-config.yml",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.1-rc.3 <0.3.0"
+  },
+  "scripts": {
+    "test": "node --test --test-reporter=spec tests/config.test.mjs tests/privacy.test.mjs tests/state.test.mjs tests/storage.test.mjs tests/recovery.test.mjs tests/loader.test.mjs tests/checkpoint-guard.integration.test.mjs",
+    "test:coverage": "node --test --experimental-test-coverage --test-reporter=spec tests/config.test.mjs tests/privacy.test.mjs tests/state.test.mjs tests/storage.test.mjs tests/recovery.test.mjs tests/loader.test.mjs tests/checkpoint-guard.integration.test.mjs",
+    "check": "node --check src/index.js && node --check src/config.js && node --check src/state.js && node --check src/storage.js && node --check src/recovery.js && node --check src/redact.js && npm test",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm test"
+  },
+  "author": "jlnkx5200-beep",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/issues"
+  },
+  "homepage": "https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard#readme"
+}

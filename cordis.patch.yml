@@ -1,0 +1,12 @@
+# Bundle row installed into the profile by `dsh plugin add`.
+#
+# Defaults are intentionally conservative:
+#   - checkpointing is local-only;
+#   - automatic recovery is off until a probe endpoint is configured;
+#   - the exact-duplicate guard is active only during the first resumed turn.
+#
+# Override this row by id in the profile's cordis.patch.yml. A later patch
+# replaces the whole config object, so restate every field you want to keep.
+- insert:
+    - id: task-checkpoint-guard
+      name: dsh-task-checkpoint-guard

@@ -1,0 +1,49 @@
+# Example profile override for dsh-task-checkpoint-guard.
+#
+# Copy this row into:
+#   $DSH_HOME/profiles/<profile>/cordis.patch.yml
+#
+# A later patch replaces the whole row config, so keep every field you need.
+# DO NOT put a real API key in this file. credentialRef is only the name of a
+# reference resolved by DSH's credentials service.
+- id: task-checkpoint-guard
+  name: dsh-task-checkpoint-guard
+  config:
+    # Omit to use $DSH_HOME/task-checkpoints.
+    checkpointRoot: ~/.dsh/task-checkpoints
+
+    # off       = checkpoint only (default)
+    # probe     = require a successful readiness probe before re-arming a goal
+    # deferred  = wait initialProbeDelayMs and re-arm without a probe
+    recoveryMode: probe
+
+    # Replace this placeholder with a low-cost readiness endpoint.
+    probeUrl: https://api.example.test/v1/models
+    probeMethod: GET
+    probeAuth: bearer
+
+    # Name only. The value lives in the DSH credentials store/environment.
+    credentialRef: EXAMPLE_PROVIDER_API_KEY
+
+    probeExpectedStatuses: [200]
+    probeTimeoutMs: 5000
+    maxProbeAttempts: 5
+    initialProbeDelayMs: 1000
+    maxProbeDelayMs: 30000
+    jitterRatio: 0.2
+    maxAutoResumes: 3
+
+    # null means any recorded provider. Set a provider id to prevent recovery
+    # through an unintended route.
+    providerFilter: null
+
+    # Exact completed/unknown tool fingerprints are denied during the first
+    # resumed turn. Use "off" for advisory-only behavior.
+    duplicateToolPolicy: deny-on-recovery
+
+    maxToolHistory: 80
+    maxToolResultChars: 2000
+    maxToolArgumentChars: 1000
+    maxRecoveryContextChars: 16000
+    persistDebounceMs: 100
+    reconstructFromSessionQuery: true

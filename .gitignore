@@ -1,0 +1,33 @@
+node_modules/
+coverage/
+.nyc_output/
+.tmp/
+.tmp-*/
+dist/
+release/
+release-candidates/
+*.tgz
+
+# Local release-preparation audit artifacts — never commit.
+.release-prep/
+
+# Local checkpoint data and runtime state — never commit.
+task-checkpoints/
+checkpoints/
+sessions/
+*.previous
+*.parked-*
+.credentials.yaml
+.env
+.env.*
+*.pem
+*.key
+
+# Logs and OS/editor noise.
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
