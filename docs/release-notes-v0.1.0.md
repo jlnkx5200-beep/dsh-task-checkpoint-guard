@@ -76,6 +76,6 @@ Local Windows 11 / Node 24.21.0 / DSH 0.2.1-rc.3:
 
 - 52 tests passing locally, including real Cordis loader loading.
 - Clean temporary-profile tarball install, config dump, remove, and reinstall.
-- GitHub Actions matrix covers Ubuntu and Windows with Node.js 22.19 and Node.js 24.
+- GitHub Actions green on Ubuntu and Windows with Node.js 22.19 and Node.js 24.
 - Tarball produced with `npm pack`.
 - See `docs/release-report.md` for the verification matrix.

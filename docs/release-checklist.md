@@ -97,10 +97,11 @@ This is the release gate for `dsh-task-checkpoint-guard`. A checked box means it
 - [x] `.gitignore` excludes dependencies, logs, checkpoints, credentials, and package artifacts.
 - [x] `.npmignore` excludes tests, GitHub metadata, and local runtime data.
 - [x] GitHub Actions matrix configured for Node 22.19/24.x on Ubuntu/Windows.
-- [ ] Local Git repository initialized with the sanitized identity and a single clean commit.
-- [ ] Remote repository created: `jlnkx5200-beep/dsh-task-checkpoint-guard`.
-- [ ] Remote configured and first push performed.
-- [ ] GitHub Actions green on the target repository.
+- [x] Local Git repository initialized with the sanitized identity and a single clean commit (`1a525a4`).
+- [x] Remote repository created: `jlnkx5200-beep/dsh-task-checkpoint-guard`.
+- [x] Remote configured and first push performed.
+- [x] GitHub Actions green on the target repository:
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>.
 - [ ] GitHub Release created from `v0.1.0` and tarball attached.
 
 ## Final approval

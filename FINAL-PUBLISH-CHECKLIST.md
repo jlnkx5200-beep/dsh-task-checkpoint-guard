@@ -44,25 +44,27 @@ This file records the clean re-publication gate. It is not a license grant.
 
 ## 3. Git and GitHub publication
 
-- [ ] Authenticate the `jlnkx5200-beep` GitHub account with an explicit,
-  user-authorized credential.
-- [ ] Create the public repository `jlnkx5200-beep/dsh-task-checkpoint-guard`.
-- [ ] Push a single clean initial commit from the sanitized tree.
-- [ ] Confirm the remote commit and tree contain no removed identity data.
-- [ ] Verify GitHub Actions on Ubuntu/Windows and Node 22.19/24.
+- [x] Authenticated the `jlnkx5200-beep` GitHub account with an explicit,
+  user-authorized device flow.
+- [x] Created the public repository
+  `jlnkx5200-beep/dsh-task-checkpoint-guard`.
+- [x] Pushed a single clean initial commit `1a525a40be075ed817b3e8b8b93e4bc6b1050fb8`.
+- [x] Confirmed the remote tree contains no removed identity data.
+- [x] Verified GitHub Actions on Ubuntu/Windows and Node 22.19/24:
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>
 - [ ] Create tag `v0.1.0` and a GitHub Release.
 - [ ] Attach the new tarball and `.sha256` asset.
 - [ ] Download the release asset and verify its SHA-256.
 
 ## 4. GitHub security controls
 
-- [ ] Secret scanning and push protection enabled.
-- [ ] Private vulnerability reporting enabled.
-- [ ] Dependabot security updates enabled.
-- [ ] Actions restricted to selected GitHub-owned actions and SHA pinning.
-- [ ] `main` protected against force push/deletion, including admins.
+- [x] Secret scanning and push protection enabled.
+- [x] Private vulnerability reporting enabled.
+- [x] Dependabot security updates enabled.
+- [x] Actions restricted to selected GitHub-owned actions and SHA pinning.
+- [x] `main` protected against force push/deletion, including admins.
 - [ ] `v*` tag ruleset protects release tags with no bypass actors.
-- [ ] Confirm no extra collaborators, deploy keys, webhooks, or Actions secrets.
+- [x] Confirmed no extra collaborators, deploy keys, webhooks, or Actions secrets.
 
 ## 5. Deferred
 
@@ -74,10 +76,10 @@ This file records the clean re-publication gate. It is not a license grant.
 
 ## 6. Publication record
 
-To be filled from the clean release:
-
-- Initial commit:
+- Initial commit: `1a525a40be075ed817b3e8b8b93e4bc6b1050fb8`
 - GitHub Actions run:
-- Tag:
-- Release:
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>
+- Tag: `v0.1.0` (pending)
+- Release: (pending)
 - Released asset SHA-256:
+  `9ee63e2dc9eb573700e5dbda08de5e74593120da10c89406a9621424547fa470`

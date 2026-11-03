@@ -4,7 +4,7 @@ Project: `dsh-task-checkpoint-guard`
 
 Version: `0.1.0`
 
-Release type: clean re-publication candidate; not yet published under the target account
+Release type: public GitHub release; tagged release metadata pending
 
 Date: 2026-11-03
 
@@ -229,12 +229,13 @@ Residual risk: redaction is heuristic and cannot detect arbitrary secrets embedd
 Pending clean publication under the target account:
 
 - Repository: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard>
-- Initial commit: pending
-- GitHub Actions: pending
+- Initial commit: `1a525a40be075ed817b3e8b8b93e4bc6b1050fb8`
+- GitHub Actions: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>
 - Tag: `v0.1.0` (pending)
 - Release: pending
 - Release asset: `dsh-task-checkpoint-guard-0.1.0.tgz`
-- Asset SHA-256: pending clean rebuild
+- Asset SHA-256:
+  `9ee63e2dc9eb573700e5dbda08de5e74593120da10c89406a9621424547fa470`
 
 npm publication remains an independent, optional decision. A real model-backed
 recovery drill remains a post-publication acceptance task.
