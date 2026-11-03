@@ -52,9 +52,9 @@ This file records the clean re-publication gate. It is not a license grant.
 - [x] Confirmed the remote tree contains no removed identity data.
 - [x] Verified GitHub Actions on Ubuntu/Windows and Node 22.19/24:
   <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>
-- [ ] Create tag `v0.1.0` and a GitHub Release.
-- [ ] Attach the new tarball and `.sha256` asset.
-- [ ] Download the release asset and verify its SHA-256.
+- [x] Create tag `v0.1.0` and a GitHub Release.
+- [x] Attach the new tarball and `.sha256` asset.
+- [x] Download the release asset and verify its SHA-256.
 
 ## 4. GitHub security controls
 
@@ -63,7 +63,7 @@ This file records the clean re-publication gate. It is not a license grant.
 - [x] Dependabot security updates enabled.
 - [x] Actions restricted to selected GitHub-owned actions and SHA pinning.
 - [x] `main` protected against force push/deletion, including admins.
-- [ ] `v*` tag ruleset protects release tags with no bypass actors.
+- [x] `v*` tag ruleset protects release tags with no bypass actors.
 - [x] Confirmed no extra collaborators, deploy keys, webhooks, or Actions secrets.
 
 ## 5. Deferred
@@ -77,9 +77,15 @@ This file records the clean re-publication gate. It is not a license grant.
 ## 6. Publication record
 
 - Initial commit: `1a525a40be075ed817b3e8b8b93e4bc6b1050fb8`
-- GitHub Actions run:
-  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>
-- Tag: `v0.1.0` (pending)
-- Release: (pending)
+- Tagged release commit: `490e2f103f30c5cf72896f32c17b46dc4747c1d7`
+- GitHub Actions run (tagged tree):
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583854293>
+- Tag: `v0.1.0`
+- Release:
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/tag/v0.1.0>
+- Released asset:
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/download/v0.1.0/dsh-task-checkpoint-guard-0.1.0.tgz>
 - Released asset SHA-256:
   `9ee63e2dc9eb573700e5dbda08de5e74593120da10c89406a9621424547fa470`
+- Released asset size: `53,161` bytes; downloaded copy matches the local
+  package byte-for-byte.

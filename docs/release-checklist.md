@@ -101,8 +101,9 @@ This is the release gate for `dsh-task-checkpoint-guard`. A checked box means it
 - [x] Remote repository created: `jlnkx5200-beep/dsh-task-checkpoint-guard`.
 - [x] Remote configured and first push performed.
 - [x] GitHub Actions green on the target repository:
-  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>.
-- [ ] GitHub Release created from `v0.1.0` and tarball attached.
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583854293>.
+- [x] GitHub Release created from `v0.1.0` and tarball attached:
+  <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/tag/v0.1.0>.
 
 ## Final approval
 
@@ -111,4 +112,4 @@ This is the release gate for `dsh-task-checkpoint-guard`. A checked box means it
 - [x] Release notes reviewed for identity leaks.
 - [x] Clean remote publication explicitly authorized by the user.
 
-**Clean v0.1.0 publication is pending. npm publication remains a separate, unperformed decision.**
+**Clean v0.1.0 GitHub publication is complete. npm publication remains a separate, unperformed decision.**

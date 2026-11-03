@@ -4,7 +4,7 @@ Project: `dsh-task-checkpoint-guard`
 
 Version: `0.1.0`
 
-Release type: public GitHub release; tagged release metadata pending
+Release type: public GitHub release
 
 Date: 2026-11-03
 
@@ -230,12 +230,14 @@ Pending clean publication under the target account:
 
 - Repository: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard>
 - Initial commit: `1a525a40be075ed817b3e8b8b93e4bc6b1050fb8`
-- GitHub Actions: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583585417>
-- Tag: `v0.1.0` (pending)
-- Release: pending
+- Tagged release commit: `490e2f103f30c5cf72896f32c17b46dc4747c1d7`
+- GitHub Actions: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/actions/runs/41583854293>
+- Tag: `v0.1.0`
+- Release: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/tag/v0.1.0>
 - Release asset: `dsh-task-checkpoint-guard-0.1.0.tgz`
 - Asset SHA-256:
   `9ee63e2dc9eb573700e5dbda08de5e74593120da10c89406a9621424547fa470`
+- Downloaded release asset matches the local package byte-for-byte.
 
 npm publication remains an independent, optional decision. A real model-backed
 recovery drill remains a post-publication acceptance task.
