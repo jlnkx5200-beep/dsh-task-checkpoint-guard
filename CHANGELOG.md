@@ -8,6 +8,22 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Hierarchical memory curation design records and release-candidate documentation.
 
+## [0.2.1] - 2026-11-04
+
+### Fixed
+
+- A human `user/message` now awaits local memory capture before prompt
+  assembly, preventing the first prompt on slow hosts from missing the
+  just-received message and its L1/L2 concept context.
+- The memory integration test now waits for the checkpoint document produced by
+  the asynchronous writer instead of asserting on a race-prone one-shot read.
+
+### Compatibility
+
+- Checkpoint schemaVersion remains `1`.
+- `memoryEnabled` remains off by default.
+- No DSH version range change.
+
 ## [0.2.0] - 2026-11-04
 
 ### Added

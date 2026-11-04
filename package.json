@@ -1,6 +1,6 @@
 {
   "name": "dsh-task-checkpoint-guard",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Durable task checkpoints, bounded recovery, and optional hierarchical concept memory for DeepSeek Harness agents.",
   "keywords": [
     "deepseek-harness",

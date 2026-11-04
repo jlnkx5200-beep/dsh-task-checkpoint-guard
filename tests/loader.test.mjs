@@ -19,7 +19,7 @@ test('plugin module exposes the Cordis plugin surface', () => {
 test('package manifest, bundle patch, and published entry points agree', async () => {
   const manifest = JSON.parse(await readFile(path.join(projectRoot, 'package.json'), 'utf8'))
   assert.equal(manifest.name, 'dsh-task-checkpoint-guard')
-  assert.equal(manifest.version, '0.2.0')
+  assert.equal(manifest.version, '0.2.1')
   assert.equal(manifest.type, 'module')
   assert.equal(manifest.main, 'src/index.js')
   assert.equal(manifest.exports['.'], './src/index.js')

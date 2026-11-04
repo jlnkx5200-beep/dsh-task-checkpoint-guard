@@ -4,7 +4,7 @@
 
 [English](README.md) | 简体中文 | [GitHub 仓库](https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard)
 
-> **状态：v0.2.0（2026-11-04）。** 已在 **DSH 0.2.1-rc.3**、Windows 11、Node.js 24.21.0 上开发和验证。`engines.dsh` 声明了可安装的版本范围，但其他版本尚未经过实测。可选记忆子系统**默认关闭**，不会改变 v0.1.0 的检查点/恢复行为。项目采用 [MIT License](LICENSE) 发布。
+> **状态：v0.2.1（2026-11-04）。** 已在 **DSH 0.2.1-rc.3**、Windows 11、Node.js 24.21.0 上开发和验证。v0.2.1 会让人类消息的本地记忆捕获先完成，再进行提示词组装，确保第一轮提示就能看到刚收到的用户消息。`engines.dsh` 声明了可安装的版本范围，但其他版本尚未经过实测。可选记忆子系统**默认关闭**，不会改变 v0.1.0 的检查点/恢复行为。项目采用 [MIT License](LICENSE) 发布。
 
 DSH 的长任务可能因网络中断、Provider 超时、5xx 服务异常或进程重启而中断。会话日志保留了对话历史，但恢复后的 Agent 仍需要一份紧凑、结构化的状态：原始目标、当前步骤、已经完成的工具调用、结果不确定的工具调用、Todo 列表，以及最近可见的执行结果。
 
@@ -107,7 +107,7 @@ npm pack
 安装到实际使用的 DSH Profile：
 
 ```sh
-dsh plugin --profile <profile> add ./dsh-task-checkpoint-guard-0.2.0.tgz
+dsh plugin --profile <profile> add ./dsh-task-checkpoint-guard-0.2.1.tgz
 ```
 
 直接从源码目录安装：

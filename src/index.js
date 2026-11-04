@@ -716,7 +716,7 @@ export function apply(ctx, rawConfig = {}) {
       cancelRecovery(session.id, 'human input superseded automatic recovery')
     }
     if (event.type === 'turn/start') cancelRecovery(session.id, 'a turn started before recovery')
-    void enqueue(session, async state => {
+    const task = enqueue(session, async state => {
       ingestEvent(state, event, limits)
       if (CHECKPOINT_EVENTS.has(event.type)) {
         schedulePersist(state, event.type, IMMEDIATE_EVENTS.has(event.type))
@@ -727,6 +727,15 @@ export function apply(ctx, rawConfig = {}) {
         await observeMemoryAssistantMessage(session, event)
       }
     }, `event:${event.type}`)
+    // A human message must complete local capture before prompt assembly, or
+    // the first injected memory context can miss the just-received message on
+    // slower hosts. Other events remain non-blocking.
+    if (config.memoryEnabled
+      && event.type === 'user/message'
+      && event.data?.source?.kind === 'user') {
+      return task
+    }
+    void task
   })
 
   const offAgentCreated = ctx.on('agent/created', async ({ agent }) => {

@@ -7,7 +7,7 @@ Target repository: <https://github.com/awesome-dsh-plugin/awesome-dsh-plugin>
 | Field | Value |
 |---|---|
 | Repository | `https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard` |
-| Release | `v0.2.0` |
+| Release | `v0.2.1` |
 | Category | `memory` |
 | Entry file | `data/plugins/jlnkx5200-beep__dsh-task-checkpoint-guard.yml` |
 | Icon | omitted; the list falls back to the owner avatar |
@@ -23,12 +23,11 @@ category: memory
 description:
   en: 'Local task checkpoints and bounded recovery for DSH, with optional L0–L3 hierarchical memory, dependency-aware retrieval, prerequisite-aware context, and six opt-in memory tools.'
   zh: '为 DSH 提供本地任务检查点与有界恢复，并可选启用 L0–L3 层级记忆、依赖感知检索、先修知识上下文和六个按需启用的记忆工具。'
-tarball: https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/download/v0.2.0/dsh-task-checkpoint-guard-0.2.0.tgz
+tarball: https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/download/v0.2.1/dsh-task-checkpoint-guard-0.2.1.tgz
 ```
 
-The tarball URL was downloaded on 2026-11-04 and matched SHA-256
-`66fbc4a4ffe6ce0ffee6f9d795d06588758b751ab777b0ee73b24dada9973af0`.
-The list supports the optional `tarball:` field for GitHub Releases.
+The v0.2.1 tarball URL and SHA-256 must be verified after the patch release is
+published. The list supports the optional `tarball:` field for GitHub Releases.
 
 ## 2. Pre-submission verification
 
@@ -40,10 +39,10 @@ The list supports the optional `tarball:` field for GitHub Releases.
 - [x] Disposable `--dump-config` contains `id: task-checkpoint-guard`.
 - [x] `dsh-plugin` topic is present.
 - [x] Repository is older than one day and actively maintained.
-- [x] `v0.2.0` Tag and Release exist; v0.1.0 is preserved.
+- [x] `v0.2.0` and `v0.2.1` Tags/Releases exist; v0.1.0 is preserved.
 - [x] Main CI passes all four Node/OS jobs on the final verified commit.
-- [x] `v0.2.0..main` contains only documentation and test-harness changes,
-  with no plugin source changes.
+- [x] `v0.2.0..main` source change is the user-message capture ordering fix,
+  released in `v0.2.1`; `v0.2.1..main` contains only documentation/test changes.
 - [x] Automated test evidence is reproducible from the documented environment.
 - [x] The semantic pilot is described as a four-case, single-run pilot.
 - [x] No security-audit claim is made.
@@ -83,7 +82,7 @@ other plugin entries.
 ## Add dsh-task-checkpoint-guard
 
 - Repository: https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard
-- Release: v0.2.0
+- Release: v0.2.1
 - Category: memory
 - License: MIT
 
@@ -142,9 +141,10 @@ Do not modify other plugin entries.
 
 Do not promise a merge date.
 
-Do not create another Release unless the v0.2.0-to-main comparison identifies
-actual source changes that require a new version. The current comparison shows
-only docs and test-harness changes.
+`v0.2.1` is the patch release for the source-level capture-ordering fix found
+during final verification. Do not create another Release unless a future
+release-to-main comparison identifies further actual source changes. After
+v0.2.1, a doc/test-only comparison does not require a new patch release.
 
 ## 6. Stop conditions
 

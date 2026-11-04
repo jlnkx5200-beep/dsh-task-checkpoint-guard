@@ -100,16 +100,9 @@ test('enabled memory registers six tools, injects curated context, and preserves
       host.session.seq,
       '请解释偏导数，并解释链式法则。',
     ))
-    const memoryFile = memoryPath(host.memoryRoot, 'integration-user')
-    await waitFor(async () => {
-      try {
-        const text = await readFile(memoryFile, 'utf8')
-        return JSON.parse(text).records.length >= 2
-      } catch {
-        return false
-      }
-    })
 
+    // A human-message event must await local capture when memory is enabled;
+    // no polling is needed before the next prompt assembly.
     const assembly = host.ctx.systemPrompt.assemble({ agent: host.agent })
     const memorySection = assembly.sections.find(section => section.name === 'memory:curated')
     assert.ok(memorySection)
