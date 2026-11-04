@@ -118,7 +118,16 @@ test('enabled memory registers six tools, injects curated context, and preserves
     assert.match(memorySection.text, /链式法则/)
     assert.match(memorySection.text, /Explanation guard/)
 
-    const loadedCheckpoint = await loadCheckpoint(host.root, host.session)
+    const loadedCheckpoint = await waitFor(async () => {
+      try {
+        const loaded = await loadCheckpoint(host.root, host.session)
+        return loaded?.state?.originalInstruction === '请解释偏导数，并解释链式法则。'
+          ? loaded
+          : undefined
+      } catch {
+        return undefined
+      }
+    })
     assert.ok(loadedCheckpoint)
     assert.equal(loadedCheckpoint.state.schemaVersion, 1)
     assert.equal('memory' in loadedCheckpoint.state, false)
