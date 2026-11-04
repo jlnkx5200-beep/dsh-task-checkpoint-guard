@@ -27,20 +27,41 @@
 
 - [x] Feature branch contains the verified implementation.
 - [x] v0.1.0 tag and Release are preserved.
-- [ ] Merge the verified feature branch into `main`.
-- [ ] Push `main`.
-- [ ] Push the feature branch for traceability.
-- [ ] Create annotated tag `v0.2.0`.
-- [ ] Create GitHub Release `v0.2.0` with tarball and SHA-256 asset.
-- [ ] Add repository topic `dsh-plugin`.
-- [ ] Verify the public repository renders the v0.2.0 README and release.
+- [x] Merge the verified feature branch into `main`.
+- [x] Push `main`.
+- [x] Push the feature branch for traceability.
+- [x] Create annotated tag `v0.2.0`.
+- [x] Create GitHub Release `v0.2.0` with tarball and SHA-256 asset.
+- [x] Add repository topic `dsh-plugin`.
+- [x] Verify the public repository renders the v0.2.0 README and release.
 - [ ] Submit the awesome-dsh-plugin PR separately.
+
+Release: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/tag/v0.2.0>
+
+Release commit: `ea7f51b41f197fb6e43ce6fbaeba58ad57d13646`
+
+Release assets:
+
+- `dsh-task-checkpoint-guard-0.2.0.tgz`
+- `dsh-task-checkpoint-guard-0.2.0.tgz.sha256`
+
+Tarball SHA-256:
+
+```text
+66fbc4a4ffe6ce0ffee6f9d795d06588758b751ab777b0ee73b24dada9973af0
+```
+
+GitHub Actions:
+
+- main push: successful run `41843474059`
+- feature branch push: successful run `41843473741`
+- tag push: successful run `41843510556`
 
 ## Security
 
-- [ ] Revoke the temporary evaluation API key used for the pilot.
-- [ ] Confirm no `.env.eval` or real key is committed.
-- [ ] Treat the key as exposed because it appeared in the interactive session.
+- [ ] Revoke the temporary evaluation API key used for the pilot in the provider console.
+- [x] Confirm no `.env.eval` or real key is committed.
+- [x] Treat the key as exposed because it appeared in the interactive session.
 
 ## Boundaries
 

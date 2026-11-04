@@ -36,11 +36,13 @@ claim statistical semantic improvement or a security audit.
 - [x] Repository has real working code, not placeholder content.
 - [x] Repository is older than one day.
 - [x] Project is actively maintained.
-- [ ] Add GitHub topic `dsh-plugin` to
-  `jlnkx5200-beep/dsh-task-checkpoint-guard` (after authentication).
-- [ ] Publish/verify the v0.2.0 GitHub Release and asset.
+- [x] Add GitHub topic `dsh-plugin` to
+  `jlnkx5200-beep/dsh-task-checkpoint-guard`.
+- [x] Publish/verify the v0.2.0 GitHub Release and asset.
 - [ ] Confirm the PR changes exactly one new YAML file and no existing entries.
 - [ ] Confirm the generated READMEs are not hand-edited in the PR.
+
+Release: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/tag/v0.2.0>
 
 ## Submission procedure
 
