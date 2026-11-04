@@ -4,7 +4,7 @@
 
 English | [简体中文](README.zh-CN.md) | [GitHub repository](https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard)
 
-> **Status: v0.2.0 release candidate.** Developed and tested against **DSH 0.2.1-rc.3** on Windows 11 with Node.js 24.21.0. The package declares the accepted DSH range in `engines.dsh`; other versions are not claimed as tested. The optional memory subsystem is **off by default** and does not change v0.1.0 checkpoint/recovery behavior. Released under the [MIT License](LICENSE).
+> **Status: v0.2.0 (2026-11-04).** Developed and tested against **DSH 0.2.1-rc.3** on Windows 11 with Node.js 24.21.0. The package declares the accepted DSH range in `engines.dsh`; other versions are not claimed as tested. The optional memory subsystem is **off by default** and does not change v0.1.0 checkpoint/recovery behavior. Released under the [MIT License](LICENSE).
 
 DSH agents can lose the thread when a long-running task is interrupted by a network failure, a provider timeout, a 5xx service error, or a process restart. The conversation log preserves history, but a restarted agent still needs a compact, structured account of what it was doing: the objective, current step, completed tools, uncertain tool outcomes, todos, and the last visible results.
 

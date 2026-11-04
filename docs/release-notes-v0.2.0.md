@@ -1,7 +1,6 @@
 # v0.2.0 — Hierarchical Memory Curation & Concept Dependency Management
 
-Status: release candidate in the feature branch. No tag, push, or GitHub
-Release has been created from this working tree.
+Status: released as `v0.2.0` on 2026-11-04.
 
 ## Highlights
 

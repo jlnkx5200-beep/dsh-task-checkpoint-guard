@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Hierarchical memory curation design records and release-candidate documentation.
 
-## [0.2.0] - Unreleased
+## [0.2.0] - 2026-11-04
 
 ### Added
 
