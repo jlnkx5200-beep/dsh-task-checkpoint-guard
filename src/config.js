@@ -28,10 +28,22 @@ export const CONFIG_DEFAULTS = Object.freeze({
   maxRecoveryContextChars: 16000,
   persistDebounceMs: 100,
   reconstructFromSessionQuery: true,
+  // v0.2.0 memory curation is opt-in. These defaults leave the v0.1.0
+  // checkpoint/recovery behavior untouched when memoryEnabled is false.
+  memoryEnabled: false,
+  memoryScopeId: 'default-user',
+  maxMemoryRecords: 500,
+  maxMemoryConcepts: 300,
+  maxMemoryHistoryVersions: 20,
+  maxMemoryAuditEntries: 200,
+  maxMemoryRecordChars: 2000,
+  maxMemoryContextChars: 6000,
+  maxMemoryContextTokens: 1200,
 })
 
 const ALLOWED_KEYS = new Set([
   'checkpointRoot',
+  'memoryRoot',
   ...Object.keys(CONFIG_DEFAULTS),
   'probeUrl',
   'credentialRef',
@@ -180,6 +192,32 @@ export function resolveCheckpointRoot(configured, dshHomePath) {
 }
 
 /**
+ * Resolve the optional memory root without coupling it to checkpoint schema or
+ * retention. A custom checkpoint root keeps memory beside it; the DSH home wins
+ * when available so separate roots do not unexpectedly scatter user data.
+ *
+ * @param {string | undefined} configured normalized configured path, if any
+ * @param {string | undefined} [dshHomePath] host-provided DSH home
+ * @param {string | undefined} [checkpointRoot] resolved checkpoint root
+ * @returns {string} absolute memory root
+ */
+export function resolveMemoryRoot(configured, dshHomePath, checkpointRoot) {
+  if (configured !== undefined && configured !== null && configured !== '') {
+    return normalizeAbsolutePath(configured)
+  }
+  const rawHome = typeof dshHomePath === 'string' && dshHomePath.trim().length > 0
+    ? dshHomePath
+    : process.env.DSH_HOME
+  if (rawHome && rawHome.trim().length > 0) {
+    return path.join(normalizeAbsolutePath(rawHome), 'task-memory')
+  }
+  if (typeof checkpointRoot === 'string' && path.isAbsolute(checkpointRoot)) {
+    return path.join(path.dirname(checkpointRoot), 'task-memory')
+  }
+  return path.join(homedir(), '.dsh', 'task-memory')
+}
+
+/**
  * Validate and materialize one raw bundle configuration.
  * @param {unknown} raw raw plugin config
  * @returns {{value?: object, issues?: Array<{message: string, path?: string[]}>}} Standard Schema result
@@ -306,6 +344,74 @@ export function validateAndNormalizeConfig(raw) {
     CONFIG_DEFAULTS.reconstructFromSessionQuery,
     issues,
   )
+  const memoryEnabled = readBoolean(input, 'memoryEnabled', CONFIG_DEFAULTS.memoryEnabled, issues)
+  const maxMemoryRecords = readInteger(
+    input,
+    'maxMemoryRecords',
+    CONFIG_DEFAULTS.maxMemoryRecords,
+    1,
+    5000,
+    issues,
+  )
+  const maxMemoryConcepts = readInteger(
+    input,
+    'maxMemoryConcepts',
+    CONFIG_DEFAULTS.maxMemoryConcepts,
+    1,
+    5000,
+    issues,
+  )
+  const maxMemoryHistoryVersions = readInteger(
+    input,
+    'maxMemoryHistoryVersions',
+    CONFIG_DEFAULTS.maxMemoryHistoryVersions,
+    0,
+    100,
+    issues,
+  )
+  const maxMemoryAuditEntries = readInteger(
+    input,
+    'maxMemoryAuditEntries',
+    CONFIG_DEFAULTS.maxMemoryAuditEntries,
+    0,
+    2000,
+    issues,
+  )
+  const maxMemoryRecordChars = readInteger(
+    input,
+    'maxMemoryRecordChars',
+    CONFIG_DEFAULTS.maxMemoryRecordChars,
+    100,
+    20000,
+    issues,
+  )
+  const maxMemoryContextChars = readInteger(
+    input,
+    'maxMemoryContextChars',
+    CONFIG_DEFAULTS.maxMemoryContextChars,
+    500,
+    50000,
+    issues,
+  )
+  const maxMemoryContextTokens = readInteger(
+    input,
+    'maxMemoryContextTokens',
+    CONFIG_DEFAULTS.maxMemoryContextTokens,
+    100,
+    20000,
+    issues,
+  )
+
+  let memoryScopeId = CONFIG_DEFAULTS.memoryScopeId
+  if (input.memoryScopeId !== undefined && input.memoryScopeId !== null) {
+    if (typeof input.memoryScopeId !== 'string' || input.memoryScopeId.trim().length === 0) {
+      issues.push(issue('memoryScopeId must be a non-empty string', 'memoryScopeId'))
+    } else if (input.memoryScopeId.length > 200) {
+      issues.push(issue('memoryScopeId must be at most 200 characters', 'memoryScopeId'))
+    } else {
+      memoryScopeId = input.memoryScopeId.trim()
+    }
+  }
 
   let providerFilter = CONFIG_DEFAULTS.providerFilter
   if (input.providerFilter !== undefined && input.providerFilter !== null && input.providerFilter !== '') {
@@ -319,6 +425,10 @@ export function validateAndNormalizeConfig(raw) {
   }
 
   const checkpointRoot = normalizeCheckpointRootInput(input.checkpointRoot, issues)
+  const memoryRoot = normalizeCheckpointRootInput(input.memoryRoot, issues)
+  if (memoryRoot !== undefined && !memoryEnabled) {
+    issues.push(issue('memoryRoot requires memoryEnabled: true', 'memoryRoot'))
+  }
 
   if (issues.length > 0) return { issues }
 
@@ -345,6 +455,16 @@ export function validateAndNormalizeConfig(raw) {
       maxRecoveryContextChars,
       persistDebounceMs,
       reconstructFromSessionQuery,
+      memoryEnabled,
+      ...(memoryRoot === undefined ? {} : { memoryRoot }),
+      memoryScopeId,
+      maxMemoryRecords,
+      maxMemoryConcepts,
+      maxMemoryHistoryVersions,
+      maxMemoryAuditEntries,
+      maxMemoryRecordChars,
+      maxMemoryContextChars,
+      maxMemoryContextTokens,
     }),
   }
 }

@@ -2,7 +2,8 @@
 
 ## Supported versions
 
-Security fixes are prepared for the latest `0.1.x` release candidate. The project has not yet published a stable release or selected an open-source license.
+Security fixes are prepared for the latest `0.2.x` release candidate. The
+project is licensed under MIT.
 
 ## Reporting a vulnerability
 
@@ -43,6 +44,19 @@ Checkpoint files may contain:
 
 They are **not** intended for publication, issue attachments, or public logs. A checkpoint directory should be protected with the same care as DSH session history.
 
+When `memoryEnabled: true`, the separate memory root may contain:
+
+- user goals, constraints, questions, concepts, and source references;
+- explicit corrections and bounded version histories;
+- concept dependency relations and learning states;
+- open conflicts and bounded audit entries;
+- confidence/feasibility metadata and per-record digests.
+
+Memory records are redacted and bounded before persistence, but they are still
+sensitive user data. A model-originated item cannot claim `USER_EXPLICIT`
+unless the same text was observed in a recent human message. Hidden reasoning
+text is never stored.
+
 ### Credentials
 
 - API keys are resolved per probe through `ctx.credentials.resolve()`.
@@ -58,7 +72,13 @@ Redaction uses heuristics for common credential shapes and secret-looking JSON k
 
 ### Network behavior
 
-The only outbound network request made by this plugin is the optional readiness probe. No checkpoint data is uploaded or synchronized. The probe sends a method, URL path, `Accept`, `User-Agent`, and optionally an authorization header; it never sends task state or a request body.
+The only outbound network request made by this plugin at runtime is the optional readiness probe. No checkpoint or memory data is uploaded or synchronized. The probe sends a method, URL path, `Accept`, `User-Agent`, and optionally an authorization header; it never sends task state or a request body.
+
+The repository also contains an **offline, explicitly run** semantic evaluation
+script (`npm run test:semantic`). It sends the test prompts and curated memory
+context to the public OpenAI-compatible endpoint configured by the operator.
+It is not invoked on plugin startup or on a session event. Never commit its API
+key or generated report containing unrelated sensitive data.
 
 ## Threat model and non-goals
 
@@ -68,7 +88,9 @@ The plugin is not a security boundary against:
 - a compromised local account that can read the checkpoint root;
 - secrets embedded in arbitrary user text;
 - side effects from tools that are not idempotent;
-- two processes writing the same checkpoint root concurrently.
+- two processes writing the same checkpoint or memory root concurrently;
+- a model that ignores prompt-level guard guidance even when its later state
+  transition is correctly rejected.
 
 ## Checkpoint integrity
 
@@ -76,7 +98,12 @@ The plugin is not a security boundary against:
 - Loaded documents are re-normalized and bounded.
 - Task and pointer paths are derived from sanitized IDs; session pointers store relative paths.
 - The previous valid copy is retained and loaded when the current copy is corrupt.
-- Multi-process locking is not implemented; use one owning DSH process per checkpoint root/session.
+- Memory documents use the same atomic replace/previous-copy discipline and a
+  module-level per-file lock shared by all agents in the process.
+- Memory schema identity, scope id, and record histories are normalized and
+  bounded on write and load.
+- Multi-process locking is not implemented; use one owning DSH process per
+  checkpoint root/session and memory root/scope.
 
 ## Dependency and API policy
 

@@ -40,6 +40,40 @@ A later patch replaces the row's **whole** `config` object. If you override any 
 | `maxRecoveryContextChars` | integer | `16000` | `1000`–`50000` | Injected recovery message cap | Bounds model context and token cost. |
 | `persistDebounceMs` | integer | `100` | `0`–`5000` | Coalescing window for low-priority events | Larger values reduce disk writes but increase the crash window. Tool calls/results and turn boundaries flush immediately. |
 | `reconstructFromSessionQuery` | boolean | `true` | `true`, `false` | Replay missing events through `ctx.sessionQuery` | Reads local session history, which can be expensive for very large sessions. Disable if the host lacks the service or strict latency is required. |
+| `memoryEnabled` | boolean | `false` | `true`, `false` | Enables the optional v0.2.0 hierarchical memory subsystem | When `false`, no memory tools or prompt sections are registered and v0.1.0 checkpoint/recovery behavior is unchanged. |
+| `memoryRoot` | string | unset | Absolute path or `~/...`; requires `memoryEnabled: true` | Local memory document root | Defaults to `$DSH_HOME/task-memory`, or the checkpoint root's sibling. Contains user information and must be protected. |
+| `memoryScopeId` | string | `default-user` | 1–200 chars | Logical memory scope within `memoryRoot` | Use one stable scope for the same user/workspace. Different scopes do not share records. |
+| `maxMemoryRecords` | integer | `500` | 1–5000 | Maximum retained records before capacity policy | L0/L1 and unfinished core prerequisites are protected; only L3 is compressed/evicted first. |
+| `maxMemoryConcepts` | integer | `300` | 1–5000 | Maximum concept nodes before pruning | L1 concept nodes and required prerequisites are protected. |
+| `maxMemoryHistoryVersions` | integer | `20` | 0–100 | Retained correction/status history entries | Old versions are bounded but remain inspectable within the limit. |
+| `maxMemoryAuditEntries` | integer | `200` | 0–2000 | Retained capture/merge/transition audit entries | `0` disables audit retention. |
+| `maxMemoryRecordChars` | integer | `2000` | 100–20000 | Per-record content bound | Redaction runs before truncation. |
+| `maxMemoryContextChars` | integer | `6000` | 500–50000 | Prompt-injected memory character budget | Bounds automatic context and disk-to-prompt coupling. |
+| `maxMemoryContextTokens` | integer | `1200` | 100–20000 | Approximate prompt token budget | L0/L1/L2 and the guard are selected before L3 details. |
+
+## Optional hierarchical memory example
+
+```yaml
+- id: task-checkpoint-guard
+  name: dsh-task-checkpoint-guard
+  config:
+    recoveryMode: off
+    memoryEnabled: true
+    memoryRoot: ~/.dsh/task-memory
+    memoryScopeId: default-user
+    maxMemoryRecords: 500
+    maxMemoryConcepts: 300
+    maxMemoryHistoryVersions: 20
+    maxMemoryAuditEntries: 200
+    maxMemoryRecordChars: 2000
+    maxMemoryContextChars: 6000
+    maxMemoryContextTokens: 1200
+```
+
+The memory feature is **off by default**. Enabling it adds six public tools
+(`memory_capture`, `memory_search`, `concept_graph`, `concept_status`,
+`memory_update`, `memory_delete`) and one read-only `memory:curated` prompt
+section when those public host registries are present.
 
 ## Complete example
 
@@ -68,9 +102,19 @@ A later patch replaces the row's **whole** `config` object. If you override any 
     maxRecoveryContextChars: 16000
     persistDebounceMs: 100
     reconstructFromSessionQuery: true
+    memoryEnabled: false
+    memoryScopeId: default-user
+    maxMemoryRecords: 500
+    maxMemoryConcepts: 300
+    maxMemoryHistoryVersions: 20
+    maxMemoryAuditEntries: 200
+    maxMemoryRecordChars: 2000
+    maxMemoryContextChars: 6000
+    maxMemoryContextTokens: 1200
 ```
 
-The endpoint and credential reference above are placeholders.
+The endpoint and credential reference above are placeholders. `memoryRoot` is
+omitted from the disabled example; set it only with `memoryEnabled: true`.
 
 ## Defaults-only row
 
@@ -95,9 +139,18 @@ maxToolArgumentChars: 1000
 maxRecoveryContextChars: 16000
 persistDebounceMs: 100
 reconstructFromSessionQuery: true
+memoryEnabled: false
+memoryScopeId: default-user
+maxMemoryRecords: 500
+maxMemoryConcepts: 300
+maxMemoryHistoryVersions: 20
+maxMemoryAuditEntries: 200
+maxMemoryRecordChars: 2000
+maxMemoryContextChars: 6000
+maxMemoryContextTokens: 1200
 ```
 
-`checkpointRoot` is omitted because it is resolved at plugin start from `dshHomePath`, then `DSH_HOME`, then the platform home directory.
+`checkpointRoot` is omitted because it is resolved at plugin start from `dshHomePath`, then `DSH_HOME`, then the platform home directory. `memoryRoot` is omitted while memory is disabled; when enabled, omit it to use `$DSH_HOME/task-memory`.
 
 ## Validation behavior
 
@@ -108,6 +161,8 @@ Invalid configuration fails plugin load. Examples:
 - `probeAuth: bearer` without `credentialRef`;
 - bearer auth over plain HTTP to a non-loopback host;
 - `maxProbeDelayMs < initialProbeDelayMs`;
+- `memoryRoot` set while `memoryEnabled` is false;
+- empty/oversized `memoryScopeId`;
 - unknown fields.
 
 The validator is synchronous and implements the Standard Schema contract expected by Cordis.
@@ -140,4 +195,9 @@ Use when a local scheduler or another layer already knows that connectivity retu
 - `persistDebounceMs` affects only low-priority events. `tool/call`, `tool/result`, `turn/start`, `turn/end`, `user/message`, `goal/change`, and `assistant/message` are flushed immediately.
 - A hard crash before a pending debounced write can lose the most recent low-priority event. The previous checkpoint and DSH's own session log remain independent recovery sources.
 - `maxToolHistory`, `maxToolResultChars`, and `maxRecoveryContextChars` bound both disk and model-context growth.
-- Multi-process checkpoints are not supported; one DSH process should own a given checkpoint root/session.
+- Memory uses independent bounds: `maxMemoryRecords`, `maxMemoryConcepts`,
+  `maxMemoryRecordChars`, `maxMemoryContextChars`, and
+  `maxMemoryContextTokens`. L3 details are compressed/evicted before protected
+  L0/L1 and prerequisite data.
+- Multi-process checkpoints are not supported; one DSH process should own a
+  given checkpoint root/session and memory root/scope.

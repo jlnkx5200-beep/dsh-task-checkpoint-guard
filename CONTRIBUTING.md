@@ -16,10 +16,11 @@ There are no npm runtime dependencies.
 ```sh
 npm test
 npm run check
-npm pack --dry-run
+npm run pack:check
+npm run test:semantic:dry-run
 ```
 
-To run the optional real Cordis loader test:
+To run the optional real Cordis loader and real ToolRuntime tests:
 
 ```powershell
 $env:DSH_CHECKOUT = (Resolve-Path '..\deepseek-harness').Path
@@ -29,6 +30,15 @@ npm test
 ```sh
 DSH_CHECKOUT=/path/to/deepseek-harness npm test
 ```
+
+The real-model semantic pilot is opt-in and uses a public API only:
+
+```sh
+DSH_EVAL_BASE_URL=... DSH_EVAL_API_KEY=... DSH_EVAL_MODEL=... npm run test:semantic
+```
+
+Do not add model calls to `session/event` handling. The plugin's automatic
+capture is deterministic by design.
 
 ## What to change
 
@@ -53,6 +63,19 @@ Any change touching recovery must preserve these invariants:
 - probe redirects are rejected and bearer probes require HTTPS outside loopback;
 - write failures are contained and logged without leaking full paths/credentials.
 
+Any change touching hierarchical memory must preserve:
+
+- L0/L1 authority over lower-layer material;
+- explicit history retained on correction and conflict records;
+- no `VERIFIED` transition without explicit user evidence;
+- no inferred concept upgraded to `USER_EXPLICIT`;
+- cycle detection returns no fabricated topological order;
+- L0/L1 and unfinished prerequisites survive capacity pressure;
+- L3 details cannot displace L0/L1/L2 in the bounded prompt context;
+- memory schema, storage, and locks remain separate from checkpoint schema;
+- no hidden reasoning is persisted;
+- multi-process writes are not claimed unless a real cross-process lock is added.
+
 ## Tests
 
 Use Node's built-in test runner. The suite must not require a real model provider or modify the user's active DSH profile.
@@ -69,8 +92,8 @@ Tests must use synthetic session/task IDs and temporary directories.
 ## Style
 
 - ESM JavaScript, semicolon-free style consistent with the existing source.
-- Prefer small pure functions in `src/state.js`, `src/storage.js`, `src/redact.js`, and `src/recovery.js`.
-- Keep DSH-specific lifecycle wiring in `src/index.js`.
+- Prefer small pure functions in `src/state.js`, `src/storage.js`, `src/redact.js`, `src/recovery.js`, `src/memory-curation/`, and `src/concept-guard/`.
+- Keep DSH-specific lifecycle and optional service wiring in `src/index.js`; keep memory policy, graph, and retrieval logic host-independent.
 - Never log raw thrown objects or credential values.
 - Keep all persisted strings bounded and redacted.
 

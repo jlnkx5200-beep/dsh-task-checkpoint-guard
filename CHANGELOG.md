@@ -6,10 +6,49 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
-- Release engineering for an independent GitHub/npm package.
-- English and Simplified Chinese documentation.
-- Architecture, configuration, troubleshooting, security, and license-decision documents.
-- GitHub Actions test matrix for Node.js 22.19 and 24.x on Ubuntu and Windows.
+- Hierarchical memory curation design records and release-candidate documentation.
+
+## [0.2.0] - Unreleased
+
+### Added
+
+- Optional opt-in four-layer memory model (`L0` goals/constraints, `L1` core
+  questions/concepts, `L2` prerequisites, `L3` details/applications).
+- Independent memory document schema (`kind: dsh-hierarchical-memory`,
+  `schemaVersion: 1`) stored under a separate memory root.
+- Deterministic human-message capture, semantic intent/layer classification,
+  priority/feasibility/confidence separation, and model-provenance downgrade.
+- Layer-protected merge, correction history, conflict records, and capacity
+  compression that preserves L0/L1 and unfinished prerequisites.
+- Concept dependency graph with multiple prerequisites, cycle detection,
+  unresolved dependencies, user-order preservation, and dynamic explanation
+  planning.
+- Concept Prerequisite Guard and learning-state machine; only explicit user
+  evidence can mark a concept `VERIFIED`.
+- Layered retrieval with character/token budgets and a read-only
+  `memory:curated` system-prompt section.
+- Six public tools: `memory_capture`, `memory_search`, `concept_graph`,
+  `concept_status`, `memory_update`, and `memory_delete`.
+- Atomic memory writes with a shared in-process per-file lock, `.previous`
+  fallback, and restart hydration.
+- Deterministic tests A–K, semantic regression fixtures, real Cordis loader and
+  real DSH ToolRuntime coverage, and an opt-in public-API semantic pilot script.
+
+### Changed
+
+- Package version is now `0.2.0`.
+- README, architecture, configuration, testing, security, and troubleshooting
+  documentation describe the optional memory subsystem.
+- `check` includes syntax checks for the new modules.
+
+### Compatibility
+
+- `memoryEnabled` defaults to `false`; v0.1.0 checkpoint and recovery behavior
+  remains unchanged when disabled.
+- Existing checkpoint schemaVersion stays `1`.
+- Cross-process writers to one memory root are still unsupported.
+- No real-model semantic improvement is claimed; the public-API pilot harness
+  exists but was not run with credentials in this development environment.
 
 ## [0.1.0] - 2026-11-02
 

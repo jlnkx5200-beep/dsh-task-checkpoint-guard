@@ -131,7 +131,11 @@ Tune:
 - lower `maxToolArgumentChars`;
 - increase `persistDebounceMs` for low-priority events.
 
-Retention/cleanup is a roadmap item; there is no automatic deletion in v0.1.0. Delete old task files manually only after confirming the associated sessions no longer need recovery.
+Checkpoint retention/cleanup is a roadmap item; there is no automatic
+checkpoint deletion. The optional memory subsystem has its own bounded capacity
+policy, but it never deletes L0/L1 or unfinished prerequisite data to satisfy a
+count limit. Delete old task files manually only after confirming the
+associated sessions no longer need recovery.
 
 ## The plugin loads but does not resume after a host restart
 
@@ -166,3 +170,85 @@ Remove-Item -Recurse -Force "$HOME\.dsh\task-checkpoints"
 ```
 
 Before deleting, confirm the path is exactly the checkpoint root and does not contain unrelated user data.
+
+## Memory tools are missing
+
+Memory is off by default. Confirm:
+
+1. `memoryEnabled: true` in the effective profile config.
+2. The host provides a public `ctx.tools` registry. Without it, checkpointing
+   and recovery still load, but the six memory tools are inactive.
+3. The host provides `ctx.systemPrompt` if automatic context injection is
+   expected. The curated prompt section is not registered when that seam is
+   absent.
+4. The profile was restarted after enabling the feature. The loader validates
+   unknown fields; `memoryRoot` is rejected unless `memoryEnabled` is true.
+
+The plugin logs a warning when memory is enabled but a tool or prompt registry
+is absent.
+
+## Memory file is not created
+
+A memory document is written only after relevant information is captured. A
+fresh profile with no human message has no memory document. Check:
+
+- `memoryRoot` (default `$DSH_HOME/task-memory`);
+- `memoryScopeId` (default `default-user`);
+- whether the profile uses a different `DSH_HOME`;
+- directory permissions for atomic rename and `fsync`.
+
+Memory and checkpoint files are separate. Creating a checkpoint does not
+guarantee that a memory document exists.
+
+## A concept transition was blocked
+
+`concept_status` rejects `start` or `complete` when:
+
+- a necessary prerequisite is not `EXPLAINED` or `VERIFIED`;
+- the visible `plannedText` mentions an undeclared queued concept;
+- the dependency graph contains a cycle or missing prerequisite node;
+- the requested state transition is invalid.
+
+Read the returned `guard.violations` and
+`guard.requiredActions`. Explain the prerequisite separately, then retry with
+the correct `usedConceptIds`. Do not bypass the guard by editing memory files.
+
+## A concept will not become VERIFIED
+
+`VERIFIED` requires explicit evidence from the user:
+
+- `USER_CONFIRMATION`;
+- `USER_APPLICATION`;
+- `USER_FEEDBACK`.
+
+A model statement, a completed assistant response, or a tool argument is not
+user evidence. The check is enforced in `state-transition.js`; it is not just a
+prompt instruction.
+
+## Memory grows too large
+
+Tune:
+
+- `maxMemoryRecords`;
+- `maxMemoryConcepts`;
+- `maxMemoryRecordChars`;
+- `maxMemoryContextChars` and `maxMemoryContextTokens`.
+
+L0/L1 and unfinished core prerequisites are protected. L3 records are
+compressed/evicted first, and compressed records retain their id, topic,
+digest, source references, and layer. Explicit `memory_search` can retrieve
+retained details.
+
+## Concurrent memory writes
+
+All agents in one DSH process share a per-file lock and serialize read-modify-
+write cycles. If two DSH processes point at the same `memoryRoot` and scope,
+there is no cross-process lock. Use one owning process per memory root/scope.
+
+## Real-model semantic evaluation
+
+`npm run test:semantic:dry-run` needs no credentials and shows the exact prompts.
+`npm run test:semantic` needs `DSH_EVAL_BASE_URL`, `DSH_EVAL_API_KEY`, and
+`DSH_EVAL_MODEL`. It is an offline maintainer tool, not a runtime dependency.
+No model-level improvement should be claimed without saving and reviewing its
+report. See [semantic-acceptance.md](semantic-acceptance.md).

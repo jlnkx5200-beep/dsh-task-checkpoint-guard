@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import path from 'node:path'
 import test from 'node:test'
-import { Config, resolveCheckpointRoot } from '../src/config.js'
+import { Config, resolveCheckpointRoot, resolveMemoryRoot } from '../src/config.js'
 
 function validate(input) {
   return Config['~standard'].validate(input)
@@ -18,6 +18,11 @@ test('config schema is synchronous Standard Schema and fills safe defaults', () 
   assert.equal(result.value.checkpointRoot, undefined)
   assert.equal(result.value.providerFilter, null)
   assert.equal(result.value.reconstructFromSessionQuery, true)
+  assert.equal(result.value.memoryEnabled, false)
+  assert.equal(result.value.memoryScopeId, 'default-user')
+  assert.equal(result.value.maxMemoryRecords, 500)
+  assert.equal(result.value.maxMemoryContextChars, 6000)
+  assert.equal(result.value.maxMemoryContextTokens, 1200)
 })
 
 test('checkpointRoot accepts absolute and ~/ paths and rejects relative paths', () => {
@@ -99,6 +104,41 @@ test('probeExpectedStatuses only accepts HTTP status integers', () => {
   assert.deepEqual(good.value.probeExpectedStatuses, [200, 204])
   const bad = validate({ probeExpectedStatuses: [200, 99, 600] })
   assert.ok(bad.issues.some(item => item.path?.[0] === 'probeExpectedStatuses'))
+})
+
+test('memory configuration is opt-in and memoryRoot requires the feature switch', () => {
+  const disabledWithRoot = validate({ memoryRoot: path.join(path.sep, 'tmp', 'memory') })
+  assert.ok(disabledWithRoot.issues.some(item => item.path?.[0] === 'memoryRoot'))
+
+  const enabled = validate({
+    memoryEnabled: true,
+    memoryRoot: path.join(path.sep, 'tmp', 'memory'),
+    memoryScopeId: 'test-user',
+  })
+  assert.equal(enabled.issues, undefined)
+  assert.equal(enabled.value.memoryEnabled, true)
+  assert.equal(enabled.value.memoryScopeId, 'test-user')
+})
+
+test('resolveMemoryRoot prefers configured path, then DSH home, then the checkpoint sibling', () => {
+  const configured = path.join(path.sep, 'custom', 'memory')
+  assert.equal(resolveMemoryRoot(configured, path.join(path.sep, 'ignored')), path.normalize(configured))
+  assert.equal(
+    resolveMemoryRoot(undefined, path.join(path.sep, 'dsh-home')),
+    path.join(path.sep, 'dsh-home', 'task-memory'),
+  )
+  const checkpointRoot = path.join(path.sep, 'dsh-home', 'task-checkpoints')
+  const previous = process.env.DSH_HOME
+  delete process.env.DSH_HOME
+  try {
+    assert.equal(
+      resolveMemoryRoot(undefined, undefined, checkpointRoot),
+      path.join(path.sep, 'dsh-home', 'task-memory'),
+    )
+  } finally {
+    if (previous === undefined) delete process.env.DSH_HOME
+    else process.env.DSH_HOME = previous
+  }
 })
 
 test('resolveCheckpointRoot prefers configured path, then DSH home, then the environment fallback', () => {

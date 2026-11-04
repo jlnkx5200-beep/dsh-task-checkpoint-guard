@@ -47,3 +47,16 @@
     maxRecoveryContextChars: 16000
     persistDebounceMs: 100
     reconstructFromSessionQuery: true
+
+    # v0.2.0 hierarchical memory is opt-in. Leave false to preserve v0.1.0
+    # checkpoint/recovery behavior exactly. When true, set memoryRoot (or omit
+    # it to use $DSH_HOME/task-memory).
+    memoryEnabled: false
+    memoryScopeId: default-user
+    maxMemoryRecords: 500
+    maxMemoryConcepts: 300
+    maxMemoryHistoryVersions: 20
+    maxMemoryAuditEntries: 200
+    maxMemoryRecordChars: 2000
+    maxMemoryContextChars: 6000
+    maxMemoryContextTokens: 1200

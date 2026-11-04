@@ -13,8 +13,10 @@ release-candidates/
 
 # Local checkpoint data and runtime state — never commit.
 task-checkpoints/
+task-memory/
 checkpoints/
 sessions/
+docs/semantic-eval-*.json
 *.previous
 *.parked-*
 .credentials.yaml

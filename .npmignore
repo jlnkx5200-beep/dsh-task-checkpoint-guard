@@ -12,7 +12,9 @@ release/
 *.previous
 *.parked-*
 task-checkpoints/
+task-memory/
 checkpoints/
+docs/semantic-eval-*.json
 .credentials.yaml
 .env
 .env.*

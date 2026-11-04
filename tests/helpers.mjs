@@ -65,15 +65,105 @@ function listenerKey(event) {
  * Small Cordis-like context for plugin tests. It intentionally exposes only the
  * documented methods the plugin is allowed to use.
  */
+export function makeFakeTools() {
+  const definitions = new Map()
+  return {
+    definitions,
+    register(definition) {
+      if (typeof definition?.name !== 'string' || definition.name.length === 0) {
+        throw new Error('tool definition requires a name')
+      }
+      if (definitions.has(definition.name)) throw new Error(`duplicate tool ${definition.name}`)
+      definitions.set(definition.name, definition)
+      return () => definitions.delete(definition.name)
+    },
+    get(name) {
+      return definitions.get(name)
+    },
+    list() {
+      return [...definitions.values()]
+    },
+    schemas() {
+      return [...definitions.values()].map(({ name, description, parameters }) => ({ name, description, parameters }))
+    },
+    async execute({ name, arguments: args, agent, signal = new AbortController().signal }) {
+      const definition = definitions.get(name)
+      if (definition === undefined) throw new Error(`unknown tool ${name}`)
+      const value = await definition.execute(args ?? {}, { agent, signal })
+      return {
+        content: definition.output.render(args ?? {}, value),
+        isError: false,
+        value,
+      }
+    },
+  }
+}
+
+export function makeFakeSystemPrompt() {
+  const sections = new Map()
+  const contexts = new Map()
+  const orderNames = {
+    STRUCTURED_OUTPUT: 9900,
+    TOOL_GOAL: 2400,
+    PLAN_POLICY: 500,
+  }
+  return {
+    sections,
+    contexts,
+    section(spec) {
+      if (sections.has(spec.name)) throw new Error(`duplicate section ${spec.name}`)
+      sections.set(spec.name, spec)
+      return () => sections.delete(spec.name)
+    },
+    context(spec) {
+      if (contexts.has(spec.name)) throw new Error(`duplicate context ${spec.name}`)
+      contexts.set(spec.name, spec)
+      return () => contexts.delete(spec.name)
+    },
+    getSectionOrder(name) {
+      return orderNames[name] ?? 0
+    },
+    getContextOrder(name) {
+      return orderNames[name] ?? 0
+    },
+    assemble({ agent } = {}) {
+      return {
+        sections: [...sections.values()]
+          .sort((left, right) => left.order - right.order)
+          .map(section => ({
+            name: section.name,
+            text: typeof section.text === 'function' ? section.text({ agent }) : section.text,
+          }))
+          .filter(section => section.text.length > 0),
+        contexts: [...contexts.values()]
+          .sort((left, right) => left.order - right.order)
+          .map(context => ({
+            name: context.name,
+            text: typeof context.text === 'function' ? context.text({ agent }) : context.text,
+          }))
+          .filter(context => context.text.length > 0),
+        tools: [],
+        variables: {},
+      }
+    },
+  }
+}
+
 export function makeFakeContext(options = {}) {
   const listeners = new Map()
   const disposers = []
   const logs = { debug: [], warn: [], error: [], info: [] }
+  const tools = options.tools === false ? undefined : (options.tools ?? makeFakeTools())
+  const systemPrompt = options.systemPrompt === false
+    ? undefined
+    : (options.systemPrompt ?? makeFakeSystemPrompt())
   const services = {
     dshHomePath: options.dshHomePath,
     goals: options.goals,
     credentials: options.credentials,
     sessionQuery: options.sessionQuery,
+    tools,
+    systemPrompt,
   }
 
   const agents = options.agents ?? []
@@ -82,6 +172,8 @@ export function makeFakeContext(options = {}) {
   const ctx = {
     services,
     logs,
+    ...(tools === undefined ? {} : { tools }),
+    ...(systemPrompt === undefined ? {} : { systemPrompt }),
     agents: {
       list: () => [...agents],
       get: id => agents.find(agent => agent.id === id),

@@ -4,11 +4,13 @@
 
 [English](README.md) | 简体中文 | [GitHub 仓库](https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard)
 
-> **状态：v0.1.0。** 已在 **DSH 0.2.1-rc.3**、Windows 11、Node.js 24.21.0 上开发和验证。`engines.dsh` 声明了可安装的版本范围，但其他版本尚未经过实测。项目采用 [MIT License](LICENSE) 发布。
+> **状态：v0.2.0 候选版本。** 已在 **DSH 0.2.1-rc.3**、Windows 11、Node.js 24.21.0 上开发和验证。`engines.dsh` 声明了可安装的版本范围，但其他版本尚未经过实测。可选记忆子系统**默认关闭**，不会改变 v0.1.0 的检查点/恢复行为。项目采用 [MIT License](LICENSE) 发布。
 
 DSH 的长任务可能因网络中断、Provider 超时、5xx 服务异常或进程重启而中断。会话日志保留了对话历史，但恢复后的 Agent 仍需要一份紧凑、结构化的状态：原始目标、当前步骤、已经完成的工具调用、结果不确定的工具调用、Todo 列表，以及最近可见的执行结果。
 
 `dsh-task-checkpoint-guard` 在本地保存这份状态，识别可恢复的传输层异常，并在完成有界就绪探测后，安全地重新激活已有的 DSH Goal。插件不会保存隐藏思维链，也不会把任务记录上传或远程同步到任何地方。
+
+v0.2.0 增加了**可选的层级化记忆策展模块**：它可以区分 L0 目标与约束、L1 核心问题与概念、L2 先修知识和 L3 细节应用，维护概念依赖图，并在解释前注入有界的、考虑先修关系与学习状态的上下文。该功能默认 `memoryEnabled: false`；关闭时不会注册任何记忆工具或提示词 section，v0.1.0 的检查点 Schema 与恢复行为保持不变。
 
 ## 核心能力
 
@@ -30,12 +32,30 @@ DSH 的长任务可能因网络中断、Provider 超时、5xx 服务异常或进
 - 可选地在**恢复后的第一个 Turn** 内拒绝与已完成调用完全相同的工具调用，Turn 结束后自动解除。
 - 当宿主提供公开的 `ctx.sessionQuery` 服务时，可弥补检查点与当前 Session 日志之间的缺失事件。
 
+### 可选层级化记忆（v0.2.0）
+
+显式启用后：
+
+- 对真实人类消息进行确定性捕获，不在每个 Session 事件上额外调用模型。
+- 将信息分为 L0/L1/L2/L3，并独立记录优先级、可行性和可信度。
+- L0/L1 不被低层细节静默覆盖；用户修正保留历史，同层矛盾形成显式冲突记录。
+- 维护有向概念图，支持多个先修节点、环路检测、未解决依赖、用户顺序和动态解释顺序。
+- 实现 Concept Prerequisite Guard：未解释概念不能作为默认推理前提；只有用户明确证据才能把概念标记为 `VERIFIED`。
+- 在字符/Token 预算内优先注入 L0/L1/L2，L3 仅在相关时进入；未注入细节可通过显式搜索读取。
+- 在公开工具注册表可用时注册 `memory_capture`、`memory_search`、`concept_graph`、`concept_status`、`memory_update`、`memory_delete`。
+- 记忆使用独立 Schema、独立文件与独立原子写入，不与检查点混合。
+
+完整设计见 [docs/design-v0.2.0.md](docs/design-v0.2.0.md)，测试状态见 [docs/testing.md](docs/testing.md)。
+
 ## 明确不做什么
 
 - **不保存、不重建隐藏思维链。** 恢复仅依赖可见消息、持久执行事实和结构化状态。
 - **不上传、不同步检查点。** 唯一的外部网络请求是发往用户配置端点的可选就绪探测。
 - **不保证工具调用幂等。** 精确重复保护只覆盖恢复后第一个 Turn 内完全相同 fingerprint 的调用；相同副作用但参数不同的调用仍需模型自行判断。
 - **不自行启动模型轮次。** 自动继续需要 DSH Goal 服务**和** goal-round driver。没有 driver 时可以重新激活 Goal 并排队上下文，但不一定会有新的 Turn 开始。
+- **记忆守卫不是对自由文本的 token 级拦截。** 它可以在状态转换层硬拒绝、在上下文层给出先修约束，并对已生成文本记录审计；但不能证明所有模型回答都会遵守。
+- **不把模型推断升级为用户事实或 `VERIFIED`。**
+- **不宣称已证明解释质量提升。** 确定性语义 fixture 与可选真实模型 pilot 是不同证据层级。
 - **不宣称兼容所有 DSH 版本。** 详见[兼容性](#兼容性)。
 
 ## 工作原理
@@ -72,7 +92,8 @@ flowchart TD
 - 可选宿主能力：
   - `goals` + `goal-round-driver`：自动 Goal 继续；
   - `credentials`：需要认证的探测；
-  - `sessionQuery`：补齐插件加载前或检查点之后缺失的会话事件。
+  - `sessionQuery`：补齐插件加载前或检查点之后缺失的会话事件；
+  - `tools` + `systemPrompt`：v0.2.0 记忆工具与自动上下文注入所需；缺失时检查点/恢复仍可加载，记忆工具和自动注入降级为不可用。`memoryEnabled` 默认关闭。
 - 无 npm 运行时依赖。
 
 ## 安装
@@ -86,7 +107,7 @@ npm pack
 安装到实际使用的 DSH Profile：
 
 ```sh
-dsh plugin --profile <profile> add ./dsh-task-checkpoint-guard-0.1.0.tgz
+dsh plugin --profile <profile> add ./dsh-task-checkpoint-guard-0.2.0.tgz
 ```
 
 直接从源码目录安装：
@@ -161,11 +182,38 @@ Bundle 默认值较保守：`recoveryMode: off`，本地检查点开启，精确
     maxRecoveryContextChars: 16000
     persistDebounceMs: 100
     reconstructFromSessionQuery: true
+    memoryEnabled: false
+    memoryScopeId: default-user
+    maxMemoryRecords: 500
+    maxMemoryConcepts: 300
+    maxMemoryHistoryVersions: 20
+    maxMemoryAuditEntries: 200
+    maxMemoryRecordChars: 2000
+    maxMemoryContextChars: 6000
+    maxMemoryContextTokens: 1200
 ```
 
 `https://api.example.test` 与 `EXAMPLE_API_KEY` 都是占位符。请使用与你的部署匹配的就绪端点和凭据引用。凭据引用指向 DSH credentials 服务中的秘密；其值不会写入检查点。
 
 完整参数、类型、范围和安全性说明见 [docs/configuration.md](docs/configuration.md)。
+
+### 可选层级化记忆示例
+
+```yaml
+- id: task-checkpoint-guard
+  name: dsh-task-checkpoint-guard
+  config:
+    recoveryMode: off
+    memoryEnabled: true
+    memoryRoot: ~/.dsh/task-memory
+    memoryScopeId: default-user
+    maxMemoryRecords: 500
+    maxMemoryConcepts: 300
+    maxMemoryContextChars: 6000
+    maxMemoryContextTokens: 1200
+```
+
+`memoryEnabled: false` 时设置 `memoryRoot` 会被配置校验拒绝，而不是静默忽略。记忆文件与检查点文件相互独立，v0.1.0 恢复不依赖记忆文件。
 
 ### 最小安全示例
 
@@ -225,6 +273,7 @@ Bundle 默认值较保守：`recoveryMode: off`，本地检查点开启，精确
 ## 隐私与安全
 
 - 检查点仅保存在本地，包含任务文本、有界工具参数/结果和 Session 标识。请把检查点目录视为敏感用户数据。
+- 可选记忆文档同样仅保存在本地，可能包含用户目标、问题、概念、修正历史与来源引用；请按会话历史的敏感级别保护 `memoryRoot`。
 - 凭据按探测次数实时从 DSH credentials 服务解析，只作为 `Authorization` Header 发往配置的探测端点，不会写入状态或日志。
 - 探测拒绝重定向；Bearer 探测必须使用 HTTPS，除非目标是 loopback。
 - 常见秘密形态和敏感 JSON Key 会在落盘前脱敏。脱敏是纵深防御，不是对任意用户文本的绝对保证。不要把秘密写进任务提示或工具参数。
@@ -236,8 +285,9 @@ Bundle 默认值较保守：`recoveryMode: off`，本地检查点开启，精确
 
 | 接口/环境 | 状态 |
 |---|---|
-| DSH `0.2.1-rc.3` | 已本地验证：Cordis Loader Smoke、公开 API 集成测试、干净 Profile 安装/卸载 Smoke |
+| DSH `0.2.1-rc.3` | 已本地验证：Cordis Loader Smoke、公开 API 集成测试、真实 `ToolRuntime` Schema 注册与执行、干净 Profile 安装/卸载 Smoke |
 | `engines.dsh` 范围内的其他 DSH 版本 | 可安装，但**未实测** |
+| 层级化记忆 | 确定性测试 A–K 与语义 fixture 通过；真实模型 pilot Harness 已提供，但尚未建立真实模型效果提升结论 |
 | Windows 11 + Node.js 24.21.0 | 已本地验证 |
 | Node.js 22.19 / 其他操作系统 | 已配置 CI 矩阵，但尚未声明为本地实测通过 |
 | DSH 私有 API / 其他插件私有源码 | 未使用，见 [docs/architecture.md](docs/architecture.md#public-api-dependencies) |
@@ -267,14 +317,20 @@ Bundle 默认值较保守：`recoveryMode: off`，本地检查点开启，精确
 - 检查点保留数量、清理命令和静态加密。
 - 多 DSH 版本的正式兼容性矩阵。
 - 由工具定义提供的更精确幂等性元数据。
+- 多轮、盲评的统计级真实模型语义基准。
+- 跨进程记忆锁与可选静态加密。
+- 基于已验证外部知识源的概念关系推断，永远不以关键词共现替代明确依赖。
 
 ## 开发
 
 ```sh
 npm test
 npm run check
-npm pack --dry-run
+npm run pack:check
+npm run test:semantic:dry-run
 ```
+
+真实模型语义 pilot 需要公开 `DSH_EVAL_*` API 凭据，且不会在插件启动或 Session 事件中自动运行。评分标准与结论边界见 [docs/semantic-acceptance.md](docs/semantic-acceptance.md)。
 
 运行可选的真实 Loader Smoke：
 

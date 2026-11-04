@@ -1,7 +1,7 @@
 {
   "name": "dsh-task-checkpoint-guard",
-  "version": "0.1.0",
-  "description": "Durable task checkpoints and safe, bounded recovery for DeepSeek Harness agents.",
+  "version": "0.2.0",
+  "description": "Durable task checkpoints, bounded recovery, and optional hierarchical concept memory for DeepSeek Harness agents.",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -9,7 +9,11 @@
     "checkpoint",
     "task-recovery",
     "persistence",
-    "ai-agent"
+    "ai-agent",
+    "memory",
+    "knowledge-graph",
+    "concept-dependency",
+    "context-engineering"
   ],
   "type": "module",
   "main": "src/index.js",
@@ -24,6 +28,10 @@
     "docs/configuration.md",
     "docs/troubleshooting.md",
     "docs/license-decision.md",
+    "docs/design-v0.2.0.md",
+    "docs/testing.md",
+    "docs/semantic-acceptance.md",
+    "scripts",
     "examples/example-config.yml",
     "cordis.patch.yml",
     "README.md",
@@ -43,9 +51,11 @@
     "dsh": ">=0.2.1-rc.3 <0.3.0"
   },
   "scripts": {
-    "test": "node --test --test-reporter=spec tests/config.test.mjs tests/privacy.test.mjs tests/state.test.mjs tests/storage.test.mjs tests/recovery.test.mjs tests/loader.test.mjs tests/checkpoint-guard.integration.test.mjs",
-    "test:coverage": "node --test --experimental-test-coverage --test-reporter=spec tests/config.test.mjs tests/privacy.test.mjs tests/state.test.mjs tests/storage.test.mjs tests/recovery.test.mjs tests/loader.test.mjs tests/checkpoint-guard.integration.test.mjs",
-    "check": "node --check src/index.js && node --check src/config.js && node --check src/state.js && node --check src/storage.js && node --check src/recovery.js && node --check src/redact.js && npm test",
+    "test": "node --test --test-reporter=spec tests/config.test.mjs tests/privacy.test.mjs tests/state.test.mjs tests/storage.test.mjs tests/recovery.test.mjs tests/loader.test.mjs tests/checkpoint-guard.integration.test.mjs tests/memory-curation.test.mjs tests/concept-guard.test.mjs tests/memory-store.test.mjs tests/memory-integration.test.mjs tests/semantic-acceptance.test.mjs",
+    "test:coverage": "node --test --experimental-test-coverage --test-reporter=spec tests/config.test.mjs tests/privacy.test.mjs tests/state.test.mjs tests/storage.test.mjs tests/recovery.test.mjs tests/loader.test.mjs tests/checkpoint-guard.integration.test.mjs tests/memory-curation.test.mjs tests/concept-guard.test.mjs tests/memory-store.test.mjs tests/memory-integration.test.mjs tests/semantic-acceptance.test.mjs",
+    "check": "node --check src/index.js && node --check src/config.js && node --check src/state.js && node --check src/storage.js && node --check src/recovery.js && node --check src/redact.js && node --check src/memory-runtime.js && node --check src/memory-tools.js && node --check src/memory-curation/schema.js && node --check src/memory-curation/store.js && node --check src/memory-curation/classifier.js && node --check src/memory-curation/capture.js && node --check src/memory-curation/feasibility.js && node --check src/memory-curation/hierarchy.js && node --check src/memory-curation/dependency-graph.js && node --check src/memory-curation/merge-policy.js && node --check src/memory-curation/retrieval.js && node --check src/concept-guard/prerequisite-check.js && node --check src/concept-guard/explanation-order.js && node --check src/concept-guard/state-transition.js && node --check src/concept-guard/audit.js && npm test",
+    "test:semantic:dry-run": "node scripts/memory-semantic-eval.mjs --dry-run",
+    "test:semantic": "node scripts/memory-semantic-eval.mjs",
     "pack:check": "npm pack --dry-run",
     "prepublishOnly": "npm test"
   },

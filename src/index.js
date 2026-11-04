@@ -12,10 +12,12 @@
  * add a second DSH package instance to the profile.
  */
 import { createTaskState, duplicateToolDecision, ingestEvent, recordAgentError, transitionStatus } from './state.js'
-import { Config, resolveCheckpointRoot } from './config.js'
+import { Config, resolveCheckpointRoot, resolveMemoryRoot } from './config.js'
 import { loadCheckpoint, persistCheckpoint } from './storage.js'
 import { createRecoveryMessage, sleep, waitForReadiness } from './recovery.js'
-import { redact, redactHomePath, safeError } from './redact.js'
+import { redact, redactHomePath, safeError, visibleText } from './redact.js'
+import { MemoryRuntime } from './memory-runtime.js'
+import { registerMemoryTools } from './memory-tools.js'
 
 export const name = 'task-checkpoint-guard'
 export const inject = ['agents', 'sessions']
@@ -95,6 +97,9 @@ function safeProbeFacts(probe) {
 export function apply(ctx, rawConfig = {}) {
   const config = normalizeConfig(rawConfig)
   const root = resolveCheckpointRoot(config.checkpointRoot, optionalGet('dshHomePath'))
+  const memoryRoot = config.memoryEnabled
+    ? resolveMemoryRoot(config.memoryRoot, optionalGet('dshHomePath'), root)
+    : null
   const limits = {
     maxToolHistory: config.maxToolHistory,
     maxToolResultChars: config.maxToolResultChars,
@@ -111,10 +116,24 @@ export function apply(ctx, rawConfig = {}) {
   let disposed = false
 
   const logger = ctx.logger ?? console
+  const memoryState = {
+    runtime: null,
+    disposers: [],
+    ready: Promise.resolve(null),
+    initialized: false,
+  }
 
   function optionalGet(name) {
     try {
       return ctx.get(name)
+    } catch {
+      return undefined
+    }
+  }
+
+  function optionalProperty(name) {
+    try {
+      return ctx[name]
     } catch {
       return undefined
     }
@@ -138,6 +157,105 @@ export function apply(ctx, rawConfig = {}) {
       () => operations.delete(promise),
     )
     return promise
+  }
+
+  function disposeMemoryBindings() {
+    for (const dispose of memoryState.disposers.splice(0)) {
+      try {
+        dispose()
+      } catch {
+        // Framework disposers are idempotent; a double dispose must not fail.
+      }
+    }
+  }
+
+  function trackMemory(promise, label) {
+    const tracked = Promise.resolve(promise).catch(error => {
+      log('warn', `memory ${label} failed`, error)
+      return null
+    })
+    track(tracked)
+    return tracked
+  }
+
+  function startMemoryRuntime() {
+    if (!config.memoryEnabled) return
+    try {
+      const runtime = new MemoryRuntime({
+        config,
+        root: memoryRoot,
+        logger,
+      })
+      memoryState.runtime = runtime
+      memoryState.initialized = true
+
+      const tools = optionalGet('tools') ?? optionalProperty('tools')
+      if (tools !== undefined && typeof tools.register === 'function') {
+        const disposers = registerMemoryTools(tools, runtime, config)
+        memoryState.disposers.push(...disposers)
+      } else {
+        log('warn', 'memoryEnabled is true but no public tool registry is available; memory tools are inactive')
+      }
+
+      const systemPrompt = optionalGet('systemPrompt') ?? optionalProperty('systemPrompt')
+      if (systemPrompt !== undefined && typeof systemPrompt.section === 'function') {
+        const order = typeof systemPrompt.getSectionOrder === 'function'
+          ? Math.min(9900, Number(systemPrompt.getSectionOrder('STRUCTURED_OUTPUT') ?? 9900) - 1)
+          : 9800
+        const dispose = systemPrompt.section({
+          name: 'memory:curated',
+          order,
+          text: assembly => {
+            const agent = assembly?.agent
+            if (agent === undefined || memoryState.runtime === null) return ''
+            try {
+              return memoryState.runtime.contextForAgent(agent)
+            } catch (error) {
+              log('warn', 'memory prompt projection failed', error)
+              return ''
+            }
+          },
+        })
+        if (typeof dispose === 'function') memoryState.disposers.push(dispose)
+      } else {
+        log('warn', 'memoryEnabled is true but no public systemPrompt registry is available; automatic context injection is inactive')
+      }
+      memoryState.ready = trackMemory(runtime.ready(), 'initialize')
+      log('debug', `hierarchical memory active (scope=${shortId(config.memoryScopeId)}, root=${redactHomePath(memoryRoot)})`)
+    } catch (error) {
+      log('warn', 'could not initialize hierarchical memory; continuing checkpoint-only', error)
+      disposeMemoryBindings()
+      memoryState.runtime = null
+      memoryState.ready = Promise.resolve(null)
+    }
+  }
+
+  async function captureMemoryUserMessage(session, event) {
+    if (!config.memoryEnabled) return
+    await memoryState.ready
+    const runtime = memoryState.runtime
+    if (runtime === null) return
+    const text = visibleText(event?.data?.content)
+    if (text.trim().length === 0) return
+    await trackMemory(runtime.captureUserMessage({
+      sessionId: session?.id,
+      seq: Number.isSafeInteger(event?.seq) ? event.seq : null,
+      text,
+    }), 'user-capture')
+  }
+
+  async function observeMemoryAssistantMessage(session, event) {
+    if (!config.memoryEnabled) return
+    await memoryState.ready
+    const runtime = memoryState.runtime
+    if (runtime === null) return
+    const text = visibleText(event?.data?.message?.content)
+    if (text.trim().length === 0) return
+    await trackMemory(runtime.observeAssistantMessage({
+      sessionId: session?.id,
+      seq: Number.isSafeInteger(event?.seq) ? event.seq : null,
+      text,
+    }), 'assistant-guard-audit')
   }
 
   function writerFor(state) {
@@ -590,16 +708,23 @@ export function apply(ctx, rawConfig = {}) {
     track(task)
   }
 
+  startMemoryRuntime()
+
   const offSessionEvent = ctx.on('session/event', (session, event) => {
     if (disposed) return
     if (event.type === 'user/message' && event.data?.source?.kind === 'user') {
       cancelRecovery(session.id, 'human input superseded automatic recovery')
     }
     if (event.type === 'turn/start') cancelRecovery(session.id, 'a turn started before recovery')
-    void enqueue(session, state => {
+    void enqueue(session, async state => {
       ingestEvent(state, event, limits)
       if (CHECKPOINT_EVENTS.has(event.type)) {
         schedulePersist(state, event.type, IMMEDIATE_EVENTS.has(event.type))
+      }
+      if (event.type === 'user/message' && event.data?.source?.kind === 'user') {
+        await captureMemoryUserMessage(session, event)
+      } else if (event.type === 'assistant/message') {
+        await observeMemoryAssistantMessage(session, event)
       }
     }, `event:${event.type}`)
   })
@@ -709,6 +834,8 @@ export function apply(ctx, rawConfig = {}) {
     while (operations.size > 0) {
       await Promise.allSettled([...operations])
     }
+    disposeMemoryBindings()
+    memoryState.runtime = null
     states.clear()
     ensurePromises.clear()
     sessionOps.clear()
@@ -716,5 +843,5 @@ export function apply(ctx, rawConfig = {}) {
     log('debug', 'checkpoint guard disposed')
   })
 
-  log('debug', `active (recoveryMode=${config.recoveryMode}, duplicateToolPolicy=${config.duplicateToolPolicy})`)
+  log('debug', `active (recoveryMode=${config.recoveryMode}, duplicateToolPolicy=${config.duplicateToolPolicy}, memoryEnabled=${config.memoryEnabled})`)
 }

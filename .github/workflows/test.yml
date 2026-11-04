@@ -40,5 +40,8 @@ jobs:
       - name: Syntax and tests
         run: npm run check
 
+      - name: Semantic prompt dry-run
+        run: npm run test:semantic:dry-run
+
       - name: Verify package contents
         run: npm pack --dry-run

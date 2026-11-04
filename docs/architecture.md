@@ -13,6 +13,12 @@ The checkpoint guard exists to make a long DSH task resumable after a transport 
 
 It does not attempt to serialize the model's hidden reasoning or the full provider request. It does not own DSH's persistence layer, and it is not an independent evaluator of task completion.
 
+v0.2.0 adds an **optional, independently persisted hierarchical memory
+subsystem**. When `memoryEnabled` is `false` (the default), it registers no
+tools, contributes no prompt section, and does not change checkpoint
+schemaVersion 1 or any v0.1.0 recovery behavior. The design record is
+[design-v0.2.0.md](design-v0.2.0.md).
+
 ## Runtime topology
 
 ```mermaid
@@ -259,3 +265,166 @@ Data flows only:
 - recovery state → one user-role context message injected into the same agent.
 
 No checkpoint data is sent to a remote service. No API key value is passed into checkpoint documents. Secret-shaped strings are redacted before truncation. Absolute checkpoint roots are not stored in session pointers.
+
+## Optional hierarchical memory subsystem (v0.2.0)
+
+### Topology
+
+```mermaid
+flowchart LR
+    UM[Genuine user/message] --> CAP[Deterministic capture + classifier]
+    CAP --> L0[L0 goals / constraints]
+    CAP --> L1[L1 core questions / concepts]
+    CAP --> L2[L2 prerequisites]
+    CAP --> L3[L3 details / examples]
+    L1 --> G[(Concept dependency graph)]
+    L2 --> G
+    CAP --> MP[Merge / conflict / capacity policy]
+    MP --> MS[(Independent memory JSON<br/>atomic write + .previous)]
+    MS --> RET[Dependency-aware layered retrieval]
+    RET --> SP[systemPrompt dynamic section]
+    MS --> TOOLS[Six public memory tools]
+    TOOLS --> ST[Concept state machine]
+    G --> ST
+    ST --> MS
+```
+
+### Storage and schema boundary
+
+Memory uses one separate document per configured scope:
+
+```text
+<memoryRoot>/
+├── <safe-scope-id>.json
+└── <safe-scope-id>.json.previous
+```
+
+The document has `kind: "dsh-hierarchical-memory"` and `schemaVersion: 1`.
+It is not embedded in checkpoint JSON, and checkpoint loading never interprets
+memory fields. Records, concepts, relations, conflicts, audit entries, and
+capacity counters are independently normalized and bounded.
+
+### Capture and provenance
+
+Automatic capture runs only for genuine human `user/message` events. It splits
+the message into independent records at paragraphs, list items, sentence
+boundaries, and explicit multi-question connectors. It never calls a model.
+
+The deterministic classifier assigns layer, intent, priority, confidence, and
+feasibility from the visible user text. A model-supplied `USER_EXPLICIT` claim
+is accepted only when the text appears in a recent observed human message.
+Otherwise the item is downgraded to `INFERRED`. A model inference can therefore
+never become user-explicit through a tool argument alone.
+
+No reasoning blocks are stored. Assistant messages, when inspected for a guard
+audit, use visible text only.
+
+### Layer authority and merge invariants
+
+- L0 and L1 are protected from lower-layer mutation.
+- Same-topic lower-layer material creates a supplement record, not an update.
+- An explicit user correction can update the original record; a bounded
+  per-record history retains the old version.
+- Non-correction same-layer contradictions create an open conflict. Both
+  records and their sources remain.
+- Capacity compression targets L3 first. L0, L1, unfinished core concepts, and
+  their prerequisite relations are never evicted to satisfy a count limit.
+
+### Concept graph and state machine
+
+`PREREQUISITE_OF` edges are directed prerequisite → dependent. Relations are
+created only from explicit dependency wording, explicit user/tool structure, or
+verified imports. Co-occurrence never fabricates an edge.
+
+The graph supports multiple prerequisites, cycle detection, unresolved
+dependency reporting, relation updates/deletion, dynamic explanation order,
+and user-order preservation. A cycle returns no topological order.
+
+Concept states:
+
+```mermaid
+stateDiagram-v2
+    [*] --> CAPTURED
+    CAPTURED --> QUEUED
+    QUEUED --> INTRODUCED
+    INTRODUCED --> EXPLAINED
+    EXPLAINED --> VERIFIED: explicit user evidence only
+    EXPLAINED --> QUEUED: user doubt / re-explain
+    VERIFIED --> QUEUED: user doubt / re-explain
+    CAPTURED --> DEFERRED
+    QUEUED --> DEFERRED
+    QUEUED --> BLOCKED
+    DEFERRED --> QUEUED
+    BLOCKED --> QUEUED
+```
+
+`EXPLAINED` means the agent completed an independent visible explanation. It
+does not mean the user mastered the concept. Only `USER_CONFIRMATION`,
+`USER_APPLICATION`, or `USER_FEEDBACK` can move a concept to `VERIFIED`.
+
+### Prerequisite guard
+
+Before `INTRODUCED` or `EXPLAINED`, the guard checks:
+
+1. target existence;
+2. every transitive necessary prerequisite is `EXPLAINED`/`VERIFIED`;
+3. no undeclared queued concept appears in the visible proposed explanation;
+4. no unresolved/cyclic dependency is silently ordered.
+
+The guard is used as a hard gate by `concept_status` transitions. The automatic
+prompt context also states the guard and recommends a dependency order. A
+post-generation audit records observed violations for the next turn; it does
+not claim that prompt text is a hard model-side constraint.
+
+### Layered retrieval and injection
+
+At prompt assembly, the optional `memory:curated` system-prompt section reads
+the current in-memory snapshot for that agent's scope and latest human query.
+It uses a bounded character/token budget and emits:
+
+1. L0 goals/constraints;
+2. L1 core questions/concepts;
+3. L2 prerequisite closure and concept preparation state;
+4. explanation guard/order/blockers;
+5. L3 details only when related to selected concepts and budget remains.
+
+L3 records are not admitted by keyword coincidence alone. Explicit
+`memory_search` can expand omitted details without changing the automatic
+context budget. The prompt projection is synchronous and makes no model call.
+
+### Public tools
+
+When the feature is enabled and the public tool registry exists:
+
+| Tool | Role |
+|---|---|
+| `memory_capture` | Structured/natural-language capture with provenance checks, merge/conflict handling, and optional relation input. |
+| `memory_search` | Explicit layered search, including compressed details. |
+| `concept_graph` | Read graph, relations, unresolved dependencies, cycles. |
+| `concept_status` | View/check/start/complete/verify/defer/block/reopen. |
+| `memory_update` | Correct/priority/layer/relation updates with `expectedVersion`; semantic corrections require observed user correction language. |
+| `memory_delete` | Destructive confirmed delete with index cleanup; requires an observed user deletion request plus `confirm: true`. |
+
+### Concurrency and restart
+
+The memory store uses a module-level per-file lock and the shared atomic-write
+primitive. Each mutation reloads the latest valid document under the lock, so
+two agents in one DSH process cannot overwrite one another with stale snapshots.
+On startup, the latest document is loaded synchronously to make persisted
+context available to the first prompt; asynchronous reads still fall back to
+`.previous` if the primary is corrupt.
+
+Cross-process writers to the same memory root remain unsupported and are not
+claimed to be safe. The same limitation applies to v0.1.0 checkpoints.
+
+### Additional public API dependencies
+
+| API | Classification | Required? | Use |
+|---|---|---|---|
+| `ctx.tools.register` | Public tool registry | optional when memory enabled | Six memory tools |
+| `ctx.systemPrompt.section` | Public prompt registry | optional when memory enabled | Read-only curated context projection |
+| `systemPrompt.getSectionOrder` | Public prompt registry | optional | Stable section placement |
+
+The plugin still declares only `agents` and `sessions` in `inject`; tool and
+prompt services remain optional at runtime so v0.1.0 profile compositions do
+not change loading behavior.
