@@ -287,7 +287,7 @@ Bundle 默认值较保守：`recoveryMode: off`，本地检查点开启，精确
 |---|---|
 | DSH `0.2.1-rc.3` | 已本地验证：Cordis Loader Smoke、公开 API 集成测试、真实 `ToolRuntime` Schema 注册与执行、干净 Profile 安装/卸载 Smoke |
 | `engines.dsh` 范围内的其他 DSH 版本 | 可安装，但**未实测** |
-| 层级化记忆 | 确定性测试 A–K 与语义 fixture 通过；真实模型 pilot Harness 已提供，但尚未建立真实模型效果提升结论 |
+| 层级化记忆 | 确定性测试 A–L 与语义 fixture 通过；真实模型 pilot 已完成（4 个案例，rubric v2 下 baseline 1/4、guarded 4/4）；属于单次 pilot，不是统计级验证 |
 | Windows 11 + Node.js 24.21.0 | 已本地验证 |
 | Node.js 22.19 / 其他操作系统 | 已配置 CI 矩阵，但尚未声明为本地实测通过 |
 | DSH 私有 API / 其他插件私有源码 | 未使用，见 [docs/architecture.md](docs/architecture.md#public-api-dependencies) |

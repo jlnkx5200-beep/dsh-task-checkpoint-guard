@@ -57,6 +57,12 @@ It calls an OpenAI-compatible `/chat/completions` endpoint outside plugin
 startup, never during a session event. Outputs are written to
 `docs/semantic-eval-<timestamp>.json` with a pilot-only claim boundary.
 
+A completed public-endpoint run is recorded in
+[semantic-acceptance-report-2026-11-04.md](semantic-acceptance-report-2026-11-04.md)
+and the sanitized raw
+[semantic-acceptance-run-2026-11-04.json](semantic-acceptance-run-2026-11-04.json).
+It is a four-case, single-run pilot; it does not establish general accuracy.
+
 Run the prompt-only dry run without credentials:
 
 ```sh
@@ -64,6 +70,12 @@ npm run test:semantic:dry-run
 ```
 
 This writes `docs/semantic-eval-dry-run.json`.
+
+Re-score an existing report without spending another API call:
+
+```sh
+node scripts/memory-semantic-eval.mjs --rescore docs/semantic-eval-<timestamp>.json
+```
 
 ### Reporting rules
 

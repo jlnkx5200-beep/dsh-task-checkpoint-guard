@@ -47,8 +47,10 @@ All notable changes to this project are documented here. The format follows [Kee
   remains unchanged when disabled.
 - Existing checkpoint schemaVersion stays `1`.
 - Cross-process writers to one memory root are still unsupported.
-- No real-model semantic improvement is claimed; the public-API pilot harness
-  exists but was not run with credentials in this development environment.
+- Real-model semantic pilot completed on 2026-11-04 with API model
+  `deepseek-flash`: 4 cases, baseline 1/4, guarded 4/4 under section-aware rubric
+  v2. This is a single-run pilot, not a statistically validated accuracy claim.
+- Sanitized outputs and the reviewed report are committed under `docs/`.
 
 ## [0.1.0] - 2026-11-02
 

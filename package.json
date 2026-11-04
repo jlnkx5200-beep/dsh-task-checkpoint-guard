@@ -31,6 +31,8 @@
     "docs/design-v0.2.0.md",
     "docs/testing.md",
     "docs/semantic-acceptance.md",
+    "docs/semantic-acceptance-report-2026-11-04.md",
+    "docs/semantic-acceptance-run-2026-11-04.json",
     "scripts",
     "examples/example-config.yml",
     "cordis.patch.yml",

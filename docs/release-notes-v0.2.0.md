@@ -43,12 +43,22 @@ Implemented and deterministically tested:
 - real Cordis loader and real DSH ToolRuntime registration when
   `DSH_CHECKOUT` is available.
 
+Real-model pilot completed:
+
+- 2026-11-04, public DeepSeek-compatible Chat Completions endpoint.
+- Requested display name `DeepSeek-V4.1-Flash 1017`; actual API model id
+  `deepseek-flash`.
+- 4 fixed cases, baseline + guarded per case.
+- Section-aware rubric v2: baseline 1/4, guarded 4/4.
+- Single-run pilot only.
+
 Not claimed in this tree:
 
 - statistically validated concept-ordering accuracy;
-- a completed real-model semantic pilot. The harness exists, but no
-  `DSH_EVAL_*` credentials were configured during this development run, so no
-  model-level improvement claim is made.
+- general production-wide semantic improvement. See
+  [semantic-acceptance-report-2026-11-04.md](semantic-acceptance-report-2026-11-04.md)
+  and the sanitized raw
+  [semantic-acceptance-run-2026-11-04.json](semantic-acceptance-run-2026-11-04.json).
 
 ## Upgrade notes
 

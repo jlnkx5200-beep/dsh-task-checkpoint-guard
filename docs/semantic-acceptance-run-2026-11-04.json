@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "kind": "dsh-memory-semantic-pilot",
+  "createdAt": "2026-11-04T13:28:53.611Z",
+  "model": "deepseek-flash",
+  "endpoint": "https://api.deepseek.com/chat/completions",
+  "claimBoundary": "Pilot only. Not a statistically validated accuracy claim.",
+  "cases": [
+    {
+      "id": "partial-derivative-isolation",
+      "rubric": "Do not use 链式法则 as an unexplained premise or claim the user already knows it.",
+      "baseline": {
+        "text": "**偏导数**是多元函数对其中一个自变量求导、而把其余自变量暂时视为常数时得到的导数。\n\n设二元函数 \\(z=f(x,y)\\) 在点 \\((x_0,y_0)\\) 的某邻域内有定义。则 \\(f\\) 在 \\((x_0,y_0)\\) 处对 \\(x\\) 的偏导数定义为  \n\\[\nf_x(x_0,y_0)=\\frac{\\partial f}{\\partial x}(x_0,y_0)\n=\\lim_{h\\to 0}\\frac{f(x_0+h,y_0)-f(x_0,y_0)}{h},\n\\]\n前提是该极限存在。类似地，对 \\(y\\) 的偏导数为  \n\\[\nf_y(x_0,y_0)=\\frac{\\partial f}{\\partial y}(x_0,y_0)\n=\\lim_{h\\to 0}\\frac{f(x_0,y_0+h)-f(x_0,y_0)}{h}.\n\\]\n直观地说，\\(f_x\\) 表示在固定 \\(y=y_0\\) 的条件下，函数值随 \\(x\\) 变化的瞬时变化率；\\(f_y\\) 表示在固定 \\(x=x_0\\) 的条件下，函数值随 \\(y\\) 变化的瞬时变化率。\n\n**几何意义：**  \n考虑曲面\n\\[\nz=f(x,y).\n\\]\n固定 \\(y=y_0\\)，得到曲面与平面 \\(y=y_0\\) 的交线\n\\[\nz=f(x,y_0),\n\\]\n这是一条位于平面 \\(y=y_0\\) 内的曲线。偏导数 \\(f_x(x_0,y_0)\\) 就是这条曲线在点\n\\[\nP_0=(x_0,y_0,f(x_0,y_0))\n\\]\n处切线的斜率，方向沿 \\(x\\) 轴方向。类似地，固定 \\(x=x_0\\)，曲面与平面 \\(x=x_0\\) 的交线为\n\\[\nz=f(x_0,y),\n\\]\n偏导数 \\(f_y(x_0,y_0)\\) 是该曲线在 \\(P_0\\) 处切线的斜率，方向沿 \\(y\\) 轴方向。\n\n因此，偏导数刻画的是：**在曲面上沿坐标轴方向截出的曲线在一点处的倾斜程度**。需要注意：偏导数存在只说明沿相应坐标方向的变化率存在；即使两个偏导数都存在，也不一定保证函数在该点连续，也不一定保证曲面在该点有切平面。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 895,
+          "reasoningContentLength": 2037,
+          "usage": {
+            "prompt_tokens": 92,
+            "completion_tokens": 971,
+            "total_tokens": 1063,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 445
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 92
+          }
+        },
+        "evaluation": {
+          "pass": true,
+          "checks": [
+            {
+              "name": "no-unexplained-chain-rule",
+              "pass": true,
+              "observed": 0
+            }
+          ]
+        }
+      },
+      "guarded": {
+        "text": "## 偏导数\n\n**约定**：设 \\(f(x,y)\\) 在点 \\((x_0,y_0)\\) 的某邻域内有定义，并且固定一个变量后得到的一元函数可导。\n\n### 1. 概念\n\n偏导数是“把其他自变量暂时看作常数，只对一个自变量求导”得到的导数。\n\n对二元函数 \\(f(x,y)\\)，在点 \\((x_0,y_0)\\) 处对 \\(x\\) 的偏导数定义为\n\n\\[\n\\frac{\\partial f}{\\partial x}(x_0,y_0)\n=\nf_x(x_0,y_0)\n=\n\\lim_{h\\to 0}\n\\frac{f(x_0+h,y_0)-f(x_0,y_0)}{h}.\n\\]\n\n这里 \\(y\\) 固定为 \\(y_0\\)，只有 \\(x\\) 在变。等价地，令\n\n\\[\ng(x)=f(x,y_0),\n\\]\n\n则\n\n\\[\nf_x(x_0,y_0)=g'(x_0).\n\\]\n\n类似地，对 \\(y\\) 的偏导数为\n\n\\[\n\\frac{\\partial f}{\\partial y}(x_0,y_0)\n=\n\\lim_{h\\to 0}\n\\frac{f(x_0,y_0+h)-f(x_0,y_0)}{h},\n\\]\n\n此时 \\(x\\) 固定为 \\(x_0\\)。\n\n对 \\(n\\) 元函数 \\(f(x_1,\\dots,x_n)\\)，对第 \\(i\\) 个变量的偏导数为\n\n\\[\n\\frac{\\partial f}{\\partial x_i}(a)\n=\n\\lim_{h\\to 0}\n\\frac{\nf(a_1,\\dots,a_{i-1},a_i+h,a_{i+1},\\dots,a_n)\n-\nf(a_1,\\dots,a_n)\n}{h}.\n\\]\n\n也就是说，只让第 \\(i\\) 个变量变化，其余变量全部固定。\n\n### 2. 几何意义\n\n以曲面\n\n\\[\nz=f(x,y)\n\\]\n\n为例，考察点\n\n\\[\nP=(x_0,y_0,f(x_0,y_0)).\n\\]\n\n#### 对 \\(x\\) 的偏导数\n\n固定 \\(y=y_0\\)，用平面 \\(y=y_0\\) 去截曲面，得到一条曲线\n\n\\[\nC_x:\\quad z=f(x,y_0).\n\\]\n\n这条曲线位于平面 \\(y=y_0\\) 内。偏导数\n\n\\[\nf_x(x_0,y_0)\n\\]\n\n就是曲线 \\(C_x\\) 在点 \\(P\\) 处的切线斜率，也就是曲面沿 **\\(x\\) 轴方向** 的倾斜程度。\n\n该切线的方向向量可写为\n\n\\[\n(1,0,f_x(x_0,y_0)).\n\\]\n\n#### 对 \\(y\\) 的偏导数\n\n固定 \\(x=x_0\\)，用平面 \\(x=x_0\\) 去截曲面，得到曲线\n\n\\[\nC_y:\\quad z=f(x_0,y).\n\\]\n\n偏导数\n\n\\[\nf_y(x_0,y_0)\n\\]\n\n就是曲线 \\(C_y\\) 在点 \\(P\\) 处的切线斜率，也就是曲面沿 **\\(y\\) 轴方向** 的倾斜程度。\n\n该切线的方向向量可写为\n\n\\[\n(0,1,f_y(x_0,y_0)).\n\\]\n\n### 3. 关键理解\n\n- 偏导数描述的是：**只沿某一个坐标轴方向移动时，函数值的变化率**。\n- 它不是沿任意方向的変化率；沿任意方向的変化率属于方向导数。\n- 几何上，偏导数是曲面被坐标平面截出的曲线的切线斜率。\n- 若函数在该点可微，则两个坐标方向的切线可以张成曲面的切平面；但仅凭偏导数存在，不能保证曲面在该点有切平面，也不能保证函数连续。\n\n简言之：\n\n\\[\n\\boxed{\n\\text{偏导数 = 固定其余变量后，一元函数的导数}\n}\n\\]\n\n几何上，它表示曲面沿坐标轴方向的切线斜率。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 1503,
+          "reasoningContentLength": 4466,
+          "usage": {
+            "prompt_tokens": 360,
+            "completion_tokens": 2008,
+            "total_tokens": 2368,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1154
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 360
+          }
+        },
+        "evaluation": {
+          "pass": true,
+          "checks": [
+            {
+              "name": "no-unexplained-chain-rule",
+              "pass": true,
+              "observed": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "multiple-prerequisites-order",
+      "rubric": "Identify 一元函数求导 and 多元函数 as prerequisites and place separate prerequisite explanations before the target.",
+      "baseline": {
+        "text": "多元复合函数求导的核心是**链式法则**：复合函数对某个自变量的偏导数，等于“沿每一条依赖路径的导数乘积之和”。下面按常见情形说明。\n\n---\n\n## 1. 最基本情形：两个中间变量\n\n设  \n\\[\nz=f(u,v),\\qquad u=u(x,y),\\qquad v=v(x,y).\n\\]\n若 \\(f\\) 在 \\((u,v)\\) 处可微，\\(u,v\\) 在 \\((x,y)\\) 处可微，则\n\\[\n\\frac{\\partial z}{\\partial x}\n=\n\\frac{\\partial f}{\\partial u}\\frac{\\partial u}{\\partial x}\n+\n\\frac{\\partial f}{\\partial v}\\frac{\\partial v}{\\partial x},\n\\]\n\\[\n\\frac{\\partial z}{\\partial y}\n=\n\\frac{\\partial f}{\\partial u}\\frac{\\partial u}{\\partial y}\n+\n\\frac{\\partial f}{\\partial v}\\frac{\\partial v}{\\partial y}.\n\\]\n简写为\n\\[\nz_x=f_u u_x+f_v v_x,\\qquad\nz_y=f_u u_y+f_v v_y.\n\\]\n注意：这里的 \\(f_u,f_v\\) 要在 \\((u(x,y),v(x,y))\\) 处取值。\n\n用“树形图”理解：\\(z\\) 通过 \\(u\\) 和 \\(v\\) 两条路径依赖 \\(x\\)，每条路径相乘，再把两条路径相加。\n\n---\n\n## 2. 单中间变量或单自变量\n\n若\n\\[\nz=f(u),\\qquad u=u(x,y),\n\\]\n则\n\\[\nz_x=f'(u)u_x,\\qquad z_y=f'(u)u_y.\n\\]\n\n若\n\\[\nz=f(u,v),\\qquad u=u(t),\\qquad v=v(t),\n\\]\n则对 \\(t\\) 的导数是全导数：\n\\[\n\\frac{dz}{dt}\n=\nf_u\\frac{du}{dt}+f_v\\frac{dv}{dt}.\n\\]\n这里用 \\(d/dt\\)，因为只有一个独立变量 \\(t\\)。\n\n---\n\n## 3. 一般形式与矩阵写法\n\n设\n\\[\nu=(u_1,\\dots,u_p)^T=g(x),\\qquad x=(x_1,\\dots,x_n)^T,\n\\]\n且\n\\[\nh(x)=f(g(x)).\n\\]\n若 \\(f\\) 可微，\\(g\\) 可微，则\n\\[\n\\frac{\\partial h}{\\partial x_j}\n=\n\\sum_{i=1}^p\n\\frac{\\partial f}{\\partial u_i}(g(x))\n\\frac{\\partial u_i}{\\partial x_j}.\n\\]\n矩阵形式为\n\\[\nDh(x)=Df(g(x))\\,Dg(x).\n\\]\n若 \\(f\\) 是标量函数，也可写成梯度形式：\n\\[\n\\nabla_x h=J_g(x)^T\\nabla_u f(g(x)),\n\\]\n其中 \\(J_g\\) 是 \\(g\\) 的雅可比矩阵。\n\n---\n\n## 4. 用全微分理解\n\n对\n\\[\nz=f(u,v)\n\\]\n有\n\\[\ndz=f_u\\,du+f_v\\,dv.\n\\]\n而\n\\[\ndu=u_x\\,dx+u_y\\,dy,\\qquad\ndv=v_x\\,dx+v_y\\,dy.\n\\]\n代入得\n\\[\ndz=(f_u u_x+f_v v_x)\\,dx+(f_u u_y+f_v v_y)\\,dy.\n\\]\n因此 \\(dx,dy\\) 的系数就是 \\(\\partial z/\\partial x,\\partial z/\\partial y\\)。这就是链式法则的微分形式。\n\n---\n\n## 5. 一个例子\n\n设\n\\[\nz=f(x^2+y,\\;xy).\n\\]\n令\n\\[\nu=x^2+y,\\qquad v=xy.\n\\]\n则\n\\[\nz_x=f_u\\cdot 2x+f_v\\cdot y,\n\\]\n\\[\nz_y=f_u\\cdot 1+f_v\\cdot x.\n\\]\n其中 \\(f_u,f_v\\) 均在 \\((x^2+y,xy)\\) 处取值。\n\n---\n\n## 6. 特别注意：直接依赖项不能漏\n\n若函数写成\n\\[\nz=f(x,y,u(x,y)),\n\\]\n则\n\\[\nz_x=f_x+f_u u_x,\n\\]\n\\[\nz_y=f_y+f_u u_y.\n\\]\n这里 \\(f_x\\) 表示固定 \\(y,u\\) 时对 \\(f\\) 的第一个变量 \\(x\\) 的偏导；而 \\(z_x\\) 是复合函数对 \\(x\\) 的**总偏导**。两者不同。\n\n例如\n\\[\nz=f(x,y,u)=x^2y+u,\\qquad u=x+y,\n\\]\n则\n\\[\nz_x=2xy+1,\n\\]\n其中 \\(2xy\\) 来自直接依赖，\\(1\\) 来自 \\(u\\) 的间接依赖。\n\n---\n\n## 7. 高阶导数\n\n高阶导数就是对一阶结果继续求导，但此时一阶结果中仍含有 \\(f_u,f_v\\)，所以还要再用链式法则。例如若\n\\[\nz=f(u,v),\\qquad u=u(x,y),\\qquad v=v(x,y),\n\\]\n则\n\\[\nz_x=f_u u_x+f_v v_x.\n\\]\n再对 \\(x\\) 求偏导：\n\\[\nz_{xx}\n=\n(f_{uu}u_x+f_{uv}v_x)u_x\n+f_u u_{xx}\n+\n(f_{vu}u_x+f_{vv}v_x)v_x\n+f_v v_{xx}.\n\\]\n若 \\(f\\in C^2\\)，则 \\(f_{uv}=f_{vu}\\)。\n\n---\n\n## 总结\n\n多元复合函数求导的公式可概括为：\n\n\\[\n\\boxed{\n\\frac{\\partial z}{\\partial x_j}\n=\n\\sum_i\n\\frac{\\partial f}{\\partial u_i}\n\\frac{\\partial u_i}{\\partial x_j}\n}\n\\]\n\n也就是：**沿所有依赖路径相乘，再把各路径结果相加**。使用时要注意：  \n1. 外层偏导在内层函数值处取值；  \n2. 区分偏导数与全导数；  \n3. 若外层函数还直接依赖自变量，必须加上直接依赖项；  \n4. 高阶求导要反复使用链式法则。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 2613,
+          "reasoningContentLength": 6111,
+          "usage": {
+            "prompt_tokens": 79,
+            "completion_tokens": 3363,
+            "total_tokens": 3442,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2046
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 79
+          }
+        },
+        "evaluation": {
+          "pass": false,
+          "checks": [
+            {
+              "name": "separate-prerequisite-sections-before-formal-target",
+              "pass": false,
+              "observed": {
+                "partial": -1,
+                "multivariate": -1,
+                "prerequisiteSection": -1,
+                "targetSection": -1
+              }
+            }
+          ]
+        }
+      },
+      "guarded": {
+        "text": "## 先说明一点\n\n按照当前的学习状态，**「多元复合函数的求导」的两个必要前置——「一元函数求导」和「多元函数」——还没有被标记为已掌握**。所以下面先各给一段简短的前置说明，再回到目标概念本身。如果你已经熟悉这两部分，可以直接跳到第三节。\n\n---\n\n## 一、前置一：一元函数求导（要点回顾）\n\n**导数定义**：对 $y=f(x)$，\n\n$$f'(x)=\\lim_{\\Delta x\\to 0}\\frac{f(x+\\Delta x)-f(x)}{\\Delta x}.$$\n\n**几何意义**：切线斜率；**物理意义**：瞬时变化率。\n\n**必须记住的规则**：\n\n| 规则 | 公式 |\n|---|---|\n| 和差 | $(f\\pm g)'=f'\\pm g'$ |\n| 乘积 | $(fg)'=f'g+fg'$ |\n| 商 | $\\left(\\dfrac{f}{g}\\right)'=\\dfrac{f'g-fg'}{g^2}$ |\n| **链式法则** | $\\dfrac{dy}{dt}=\\dfrac{dy}{du}\\cdot\\dfrac{du}{dt}$ |\n\n其中**链式法则**是本节的核心：当 $y$ 通过中间变量 $u$ 间接依赖 $t$ 时，变化率等于各段变化率**相乘**。多元复合函数求导本质上就是把这条法则沿多条路径分别使用，再把结果相加。\n\n---\n\n## 二、前置二：多元函数（要点回顾）\n\n**多元函数**：$z=f(x,y)$，即输入是平面上的点 $(x,y)$，输出是一个数。\n\n**偏导数**：固定其余变量，只对一个变量求导：\n\n$$\\frac{\\partial f}{\\partial x}=\\lim_{\\Delta x\\to 0}\\frac{f(x+\\Delta x,y)-f(x,y)}{\\Delta x}.$$\n\n记号 $\\dfrac{\\partial z}{\\partial x}$、$f_x$、$z_x$ 都表示对第一个变元求偏导。\n\n**全微分**（可微时）：\n\n$$dz=\\frac{\\partial f}{\\partial x}dx+\\frac{\\partial f}{\\partial y}dy.$$\n\n**关键区别（后面会用到）**：多元函数有“偏导都存在”但“不可微”的情形，所以链式法则的正确性依赖**可微**这一条件，而不只是偏导存在。\n\n---\n\n## 三、正题：多元复合函数的求导\n\n### 3.1 它解决什么问题\n\n当 $z$ 先对中间变量 $u,v$ 依赖，而 $u,v$ 又依赖最终自变量时，要求 $z$ 对最终自变量的导数。核心工具是**多元链式法则**，操作上可以用“**树状图法**”统一记忆：\n\n> 画出变量依赖树，从 $z$ 到目标变量：**每条路径上的偏导相乘，不同路径的结果相加**。\n\n### 3.2 情形一：一元复合（最终只有一个自变量）\n\n设 $z=f(x,y)$ 可微，而 $x=x(t),\\ y=y(t)$ 可导。则\n\n$$\\boxed{\\frac{dz}{dt}=\\frac{\\partial f}{\\partial x}\\frac{dx}{dt}+\\frac{\\partial f}{\\partial y}\\frac{dy}{dt}}$$\n\n这里有两条路径 $z\\to x\\to t$ 和 $z\\to y\\to t$，各自相乘后相加。注意左边是**全导数** $dz/dt$（直体 $d$），不是偏导。\n\n**例**：$z=x^2y,\\ x=\\sin t,\\ y=e^{t}$。\n\n$$\\frac{dz}{dt}=2xy\\cos t+x^2e^{t}=2\\sin t\\,e^{t}\\cos t+\\sin^2 t\\,e^{t}.$$\n\n### 3.3 情形二：多元复合（最终有多个自变量）\n\n设 $z=f(u,v)$ 可微，$u=u(x,y),\\ v=v(x,y)$ 有偏导。则\n\n$$\\boxed{\\frac{\\partial z}{\\partial x}=\\frac{\\partial f}{\\partial u}\\frac{\\partial u}{\\partial x}+\\frac{\\partial f}{\\partial v}\\frac{\\partial v}{\\partial x}},\\qquad\n\\boxed{\\frac{\\partial z}{\\partial y}=\\frac{\\partial f}{\\partial u}\\frac{\\partial u}{\\partial y}+\\frac{\\partial f}{\\partial v}\\frac{\\partial v}{\\partial y}}$$\n\n**矩阵形式**（雅可比矩阵）：\n\n$$\\begin{pmatrix}\\dfrac{\\partial z}{\\partial x}&\\dfrac{\\partial z}{\\partial y}\\end{pmatrix}\n=\\begin{pmatrix}\\dfrac{\\partial f}{\\partial u}&\\dfrac{\\partial f}{\\partial v}\\end{pmatrix}\n\\begin{pmatrix}\\dfrac{\\partial u}{\\partial x}&\\dfrac{\\partial u}{\\partial y}\\\\[4pt] \\dfrac{\\partial v}{\\partial x}&\\dfrac{\\partial v}{\\partial y}\\end{pmatrix}$$\n\n即“梯度左乘雅可比矩阵”。\n\n**例**：$z=u^2+v^2,\\ u=x+y,\\ v=x-y$。\n\n$$\\frac{\\partial z}{\\partial x}=2u\\cdot 1+2v\\cdot 1=2(x+y)+2(x-y)=4x.$$\n\n### 3.4 情形三：混合情形（最容易出错）\n\n设 $z=f(x,u)$，而 $u=u(x,y)$。这里 $x$ **既是 $f$ 的直接变元，又通过 $u$ 间接进入**，所以有两条路径：\n\n$$\\frac{\\partial z}{\\partial x}=\\underbrace{f_1}_{\\text{对第一个位置}}\\cdot 1+\\underbrace{f_2}_{}\\,\\frac{\\partial u}{\\partial x},\\qquad\n\\frac{\\partial z}{\\partial y}=f_2\\,\\frac{\\partial u}{\\partial y}.$$\n\n**提醒**：这里的 $\\dfrac{\\partial z}{\\partial x}$ 与 $f_1=\\dfrac{\\partial f}{\\partial x}$ **不相等**，因为前者还包含了通过 $u$ 传来的那一部分。这是记号最容易混淆的地方：$f_1$ 只对“位置”求导，$\\partial z/\\partial x$ 是“最终结果对 $x$ 求导”。\n\n### 3.5 注意事项\n\n1. **可微性前提**：情形一、二中的等式在 $f$ 可微、内侧函数可导（有偏导）时成立。仅有偏导存在不足以保证（可构造反例）。\n2. **记号问题**：$\\partial z/\\partial x$ 表示复合后的函数对 $x$ 求偏导；$\\partial f/\\partial x$ 表示对 $f$ 的第一个位置求导。建议用 $f_1,f_2$ 或 $f_u,f_v$ 作中间记号，写作中途换回。\n3. **一阶全微分形式不变性**：$dz=f_u\\,du+f_v\\,dv$ 无论 $u,v$ 是自变量还是中间变量都成立。这是检查结果的一个好办法。\n4. **高阶偏导要反复使用链式法则**：例如求 $\\partial^2 z/\\partial x^2$ 时，$f_u,f_v$ 本身仍是 $u,v$ 的函数，还要继续对 $u,v$ 复合求导，项数会增加。\n\n---\n\n## 小结\n\n多元复合函数求导 = **一元链式法则的多路径版本**：\n\n- 一元复合：$\\dfrac{dz}{dt}=f_x x'(t)+f_y y'(t)$\n- 多元复合：$\\dfrac{\\partial z}{\\partial x}=f_u u_x+f_v v_x$（对每个最终自变量各写一遍）\n- 操作口诀：**画依赖树，路径相乘，路径相加**；注意区分“对位置求导”和“对最终变量求导”。\n\n如果你希望，我可以接着给几道由易到难的练习题（含混合情形与二阶偏导），或者把树状图画法展开讲细。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 3586,
+          "reasoningContentLength": 1800,
+          "usage": {
+            "prompt_tokens": 498,
+            "completion_tokens": 2568,
+            "total_tokens": 3066,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 861
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 498
+          }
+        },
+        "evaluation": {
+          "pass": true,
+          "checks": [
+            {
+              "name": "separate-prerequisite-sections-before-formal-target",
+              "pass": true,
+              "observed": {
+                "partial": 43,
+                "multivariate": 52,
+                "prerequisiteSection": 36,
+                "targetSection": 1015
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "goal-over-temporary",
+      "rubric": "Retain the long-term theory goal while still respecting the current request for a technique.",
+      "baseline": {
+        "text": "我这边没有看到“这道题”的题干或截图，所以没法针对它给具体技巧。请把题目发出来（文字或图片均可）。\n\n如果先要一个通用计算技巧：**先找“不变量/对称性”再算**——遇到积分、求和、行列式、概率等，先看奇偶性、对称区间、周期、配对项、轮换对称；能配对抵消或化成标准型的，优先化简，往往比硬算快很多。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 149,
+          "reasoningContentLength": 350,
+          "usage": {
+            "prompt_tokens": 79,
+            "completion_tokens": 319,
+            "total_tokens": 398,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 217
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 79
+          }
+        },
+        "evaluation": {
+          "pass": false,
+          "checks": [
+            {
+              "name": "long-term-goal-retained",
+              "pass": false
+            }
+          ]
+        }
+      },
+      "guarded": {
+        "text": "我没有看到你说的“这道题”——当前对话里没有题干、图片或公式，所以我无法对某个具体问题给出技巧；硬给一个只会是凭空编的。\n\n请补充：\n\n1. **题目原文**（或截图、公式）；\n2. **所属板块**（极限／导数与微分／不定积分与定积分／级数／多元微分／重积分／微分方程等）；\n3. **你卡在哪一步**（是算不动，还是不知道从哪下手）。\n\n另外一点需要说明，因为它直接影响我给你的形式：你在之前明确过长期目标是**系统理解高等数学的理论体系，而不只是题型技巧**。所以我默认会按“**技巧 + 它为什么成立 + 适用边界与失效情形**”来给——这样这个技巧才是可迁移的，而不是只能套在这一道题上。如果你只是要应急、先要一个能快速算完的做法，也可以直接说，我会先给可操作的步骤，但会标注它的前提条件。\n\n把题目发过来，我按上面的格式处理。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 369,
+          "reasoningContentLength": 1474,
+          "usage": {
+            "prompt_tokens": 335,
+            "completion_tokens": 609,
+            "total_tokens": 944,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 393
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 335
+          }
+        },
+        "evaluation": {
+          "pass": true,
+          "checks": [
+            {
+              "name": "long-term-goal-retained",
+              "pass": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "unexplained-prerequisite",
+      "rubric": "Do not treat 偏导数 as already mastered; explicitly separate the prerequisite explanation from the formal target chapter.",
+      "baseline": {
+        "text": "## 1. 定义\n\n设二元函数 \\(z=f(x,y)\\) 在点 \\(P_0=(x_0,y_0)\\) 的某邻域内有定义。给自变量一个小增量\n\\[\n\\Delta x,\\quad \\Delta y,\n\\]\n函数增量为\n\\[\n\\Delta z=f(x_0+\\Delta x,y_0+\\Delta y)-f(x_0,y_0).\n\\]\n令\n\\[\n\\rho=\\sqrt{(\\Delta x)^2+(\\Delta y)^2}.\n\\]\n\n如果存在常数 \\(A,B\\)，使得\n\\[\n\\Delta z=A\\Delta x+B\\Delta y+o(\\rho)\\qquad(\\rho\\to0),\n\\]\n则称 \\(f\\) 在 \\(P_0\\) 处**可微**，并把线性部分\n\\[\nA\\Delta x+B\\Delta y\n\\]\n称为函数在 \\(P_0\\) 处的**全微分**，记作\n\\[\ndz=A\\,dx+B\\,dy.\n\\]\n\n若 \\(f\\) 在 \\(P_0\\) 处可微，则必有\n\\[\nA=f_x(x_0,y_0),\\qquad B=f_y(x_0,y_0),\n\\]\n所以全微分通常写成\n\\[\n\\boxed{dz=f_x(x,y)\\,dx+f_y(x,y)\\,dy}\n\\]\n或\n\\[\n\\boxed{dz=\\frac{\\partial f}{\\partial x}dx+\\frac{\\partial f}{\\partial y}dy.}\n\\]\n\n## 2. 直观理解\n\n全微分 \\(dz\\) 是函数增量 \\(\\Delta z\\) 的**线性主部**：\n\\[\n\\Delta z\\approx dz.\n\\]\n也就是说，当 \\(dx,dy\\) 很小时，可以用全微分近似函数增量：\n\\[\nf(x+dx,y+dy)-f(x,y)\n\\approx f_x(x,y)dx+f_y(x,y)dy.\n\\]\n\n这里要注意：  \n- 对自变量 \\(x,y\\)，通常取 \\(dx=\\Delta x,\\ dy=\\Delta y\\)；  \n- 对因变量 \\(z=f(x,y)\\)，一般只有\n  \\[\n  dz\\approx \\Delta z,\n  \\]\n  并不一定严格相等。只有当 \\(f\\) 是线性函数时，二者才严格相等。\n\n## 3. 几何意义\n\n在点 \\((x_0,y_0,f(x_0,y_0))\\) 处，曲面 \\(z=f(x,y)\\) 的切平面为\n\\[\nz=f(x_0,y_0)+f_x(x_0,y_0)(x-x_0)\n+f_y(x_0,y_0)(y-y_0).\n\\]\n全微分\n\\[\ndz=f_x(x_0,y_0)dx+f_y(x_0,y_0)dy\n\\]\n就是切平面上高度的改变量。因此全微分给出的是曲面在一点附近的**一阶线性近似**。\n\n## 4. 可微与偏导数的关系\n\n重要结论：\n\n1. 若 \\(f\\) 在点 \\(P_0\\) 处可微，则偏导数 \\(f_x(P_0),f_y(P_0)\\) 存在，且全微分由它们给出。\n2. 反过来，**偏导数存在不一定可微**。\n3. 若偏导数 \\(f_x,f_y\\) 在 \\(P_0\\) 的某邻域内存在，并且在 \\(P_0\\) 处连续，则 \\(f\\) 在 \\(P_0\\) 处可微。这是一个常用的充分条件。\n\n例如\n\\[\nf(x,y)=\n\\begin{cases}\n\\dfrac{xy}{\\sqrt{x^2+y^2}},&(x,y)\\ne(0,0),\\\\\n0,&(x,y)=(0,0),\n\\end{cases}\n\\]\n在原点处两个偏导数都存在，但它不可微。\n\n## 5. 多元情形\n\n对 \\(n\\) 元函数\n\\[\nu=f(x_1,x_2,\\dots,x_n),\n\\]\n若它在一点可微，则全微分为\n\\[\ndu=\\sum_{i=1}^n \\frac{\\partial f}{\\partial x_i}dx_i\n=f_{x_1}dx_1+\\cdots+f_{x_n}dx_n.\n\\]\n用梯度写就是\n\\[\ndu=\\nabla f\\cdot dx,\n\\]\n其中\n\\[\n\\nabla f=\\left(f_{x_1},\\dots,f_{x_n}\\right),\\qquad\ndx=(dx_1,\\dots,dx_n).\n\\]\n\n## 6. 例子\n\n设\n\\[\nz=x^2y+\\sin y.\n\\]\n则\n\\[\n\\frac{\\partial z}{\\partial x}=2xy,\\qquad\n\\frac{\\partial z}{\\partial y}=x^2+\\cos y.\n\\]\n所以全微分为\n\\[\n\\boxed{dz=2xy\\,dx+(x^2+\\cos y)\\,dy.}\n\\]\n\n例如在 \\((x,y)=(1,1)\\) 附近，若 \\(dx=0.01,\\ dy=0.02\\)，则\n\\[\ndz\\approx 2\\cdot1\\cdot1\\cdot0.01+(1+\\cos1)\\cdot0.02,\n\\]\n它近似等于函数值的改变量。\n\n## 7. 一句话总结\n\n**全微分是多元函数增量的线性主部，是函数在一点附近的一阶线性近似；对 \\(z=f(x,y)\\)，它写作**\n\\[\n\\boxed{dz=f_x\\,dx+f_y\\,dy.}\n\\]\n它比“偏导数存在”更强，要求函数整体上可以用一个线性函数很好地逼近。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 2184,
+          "reasoningContentLength": 4967,
+          "usage": {
+            "prompt_tokens": 76,
+            "completion_tokens": 2598,
+            "total_tokens": 2674,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1417
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 76
+          }
+        },
+        "evaluation": {
+          "pass": false,
+          "checks": [
+            {
+              "name": "separate-unexplained-prerequisite",
+              "pass": false,
+              "observed": {
+                "partial": 1154,
+                "target": 366,
+                "prerequisiteSection": -1,
+                "targetSection": -1,
+                "separate": false
+              }
+            }
+          ]
+        }
+      },
+      "guarded": {
+        "text": "## 先说明前提：全微分必须先有「偏导数」\n\n全微分的定义和计算公式都要用到偏导数，因此按依赖关系先单独讲偏导数，再回到全微分。你在提问顺序上把全微分放在第一位；这里只是因为全微分依赖偏导数，才把偏导数提前。\n\n---\n\n## 一、前置概念：偏导数\n\n设二元函数 $z=f(x,y)$ 在点 $(x_0,y_0)$ 的某邻域内有定义。\n\n**定义（对 $x$ 的偏导数）**：固定 $y=y_0$，把 $f(x,y_0)$ 看成只含 $x$ 的一元函数，它在该点的导数\n\n$$f_x(x_0,y_0)=\\frac{\\partial f}{\\partial x}\\Big|_{(x_0,y_0)}=\\lim_{\\Delta x\\to 0}\\frac{f(x_0+\\Delta x,\\,y_0)-f(x_0,y_0)}{\\Delta x}$$\n\n称为 $f$ 在 $(x_0,y_0)$ 处对 $x$ 的偏导数；对 $y$ 的偏导数 $f_y$ 同理。\n\n**要点**：\n\n- **实际操作**：求 $f_x$ 时把 $y$ 当作常数，对 $x$ 求导，就是普通一元求导。\n- **几何意义**：$f_x(x_0,y_0)$ 是曲面 $z=f(x,y)$ 与平面 $y=y_0$ 相交所得曲线在点处的切线斜率，即函数沿 $x$ 轴方向的瞬时变化率。它只描述沿一个坐标方向的变化，不描述沿任意方向的变化。\n- **例**：$f(x,y)=x^2y^3$，则 $f_x=2xy^3$，$f_y=3x^2y^2$。\n\n记住一个关键事实：**偏导数存在，只保证沿两条坐标轴方向的变化率存在**，对函数在点附近整体的性态说明很少。这正是引入全微分的动机。\n\n---\n\n## 二、全微分\n\n### 1. 动机：用线性函数近似增量\n\n一元函数可微指\n\n$$\\Delta y=f(x_0+\\Delta x)-f(x_0)=f'(x_0)\\Delta x+o(\\Delta x),$$\n\n即增量可以用 $\\Delta x$ 的**线性函数**近似，误差比 $\\Delta x$ 高阶。\n\n对二元函数，自变量有两个，增量是 $\\Delta z=f(x_0+\\Delta x,y_0+\\Delta y)-f(x_0,y_0)$。自然的问题是：能否用 $\\Delta x,\\Delta y$ 的线性函数 $A\\Delta x+B\\Delta y$ 近似 $\\Delta z$，且误差是比 $(\\Delta x,\\Delta y)$ 的模更高阶的无穷小？\n\n### 2. 定义\n\n记 $\\rho=\\sqrt{(\\Delta x)^2+(\\Delta y)^2}$。若存在与 $\\Delta x,\\Delta y$ 无关的常数 $A,B$，使得\n\n$$\\Delta z=A\\,\\Delta x+B\\,\\Delta y+o(\\rho)\\qquad(\\rho\\to 0),$$\n\n则称 $f$ 在 $(x_0,y_0)$ 处**可微**，并称线性主部\n\n$$\\mathrm{d}z=A\\,\\Delta x+B\\,\\Delta y$$\n\n为 $f$ 在该点的**全微分**。\n\n**术语约定**：对自变量本身，规定 $\\mathrm{d}x=\\Delta x,\\ \\mathrm{d}y=\\Delta y$。所以全微分写成 $\\mathrm{d}z=A\\,\\mathrm{d}x+B\\,\\mathrm{d}y$。\n\n### 3. 系数是什么：$A=f_x,\\ B=f_y$\n\n若 $f$ 可微，取 $\\Delta y=0$ 代入定义式，得\n\n$$f(x_0+\\Delta x,y_0)-f(x_0,y_0)=A\\Delta x+o(|\\Delta x|),$$\n\n两边除以 $\\Delta x$ 取极限即得 $A=f_x(x_0,y_0)$；同理 $B=f_y(x_0,y_0)$。于是有**计算公式**：\n\n$$\\boxed{\\ \\mathrm{d}z=\\frac{\\partial f}{\\partial x}\\,\\mathrm{d}x+\\frac{\\partial f}{\\partial y}\\,\\mathrm{d}y\\ }$$\n\n注意逻辑次序：这个公式是「可微」的**结论**。如果只算出 $f_x,f_y$ 存在，还不能断定 $\\mathrm{d}z$ 存在。\n\n**例**：$z=x^2y^3$，则 $\\mathrm{d}z=2xy^3\\,\\mathrm{d}x+3x^2y^2\\,\\mathrm{d}y$。\n\n### 4. 可微、偏导存在、连续的关系\n\n以下三条结论必须分清：\n\n- **可微 $\\Rightarrow$ 连续**（定义式右边趋于 0 即得），且 **可微 $\\Rightarrow$ 偏导数存在**。\n- 反过来**都不成立**：偏导数存在推不出连续，更推不出可微。\n- **充分条件**：若 $f_x,f_y$ 在点 $(x_0,y_0)$ 的某邻域内存在且在**该点连续**，则 $f$ 在该点可微。\n\n**反例，说明偏导存在不代表可微**：设\n\n$$f(x,y)=\\frac{xy}{\\sqrt{x^2+y^2}}\\ (x^2+y^2\\neq 0),\\qquad f(0,0)=0 .$$\n\n在原点，$f(x,0)\\equiv 0$、$f(0,y)\\equiv 0$，所以 $f_x(0,0)=f_y(0,0)=0$。但沿 $\\Delta x=\\Delta y=t$：\n\n$$\\Delta z=\\frac{t^2}{\\sqrt{2}\\,|t|}=\\frac{|t|}{\\sqrt2},\\qquad \\rho=\\sqrt2\\,|t|,\\qquad \\frac{\\Delta z-0}{\\rho}=\\frac12\\not\\to 0 .$$\n\n线性主部若存在只能是 $0$，而误差不是 $o(\\rho)$，因此不可微。这说明**在多元情形下，偏导数存在与可微不等价**，而一元函数里「可导即微分存在」的直觉不能再照搬。\n\n### 5. 几何意义\n\n可微意味着曲面在点 $P(x_0,y_0,f(x_0,y_0))$ 附近可用**切平面**逼近：\n\n$$z=f(x_0,y_0)+f_x(x_0,y_0)(x-x_0)+f_y(x_0,y_0)(y-y_0),$$\n\n全微分 $\\mathrm{d}z$ 就是当自变量从 $(x_0,y_0)$ 移到 $(x_0+\\mathrm{d}x,y_0+\\mathrm{d}y)$ 时，切平面上对应点的高度增量；它与真实增量 $\\Delta z$ 相差 $o(\\rho)$。\n\n### 6. 用它做近似计算\n\n由 $\\Delta z\\approx \\mathrm{d}z$，当 $|\\Delta x|,|\\Delta y|$ 很小时\n\n$$f(x_0+\\Delta x,y_0+\\Delta y)\\approx f(x_0,y_0)+f_x(x_0,y_0)\\Delta x+f_y(x_0,y_0)\\Delta y .$$\n\n**例**：估计 $\\sqrt{3.01^2+3.98^2}$。取 $f(x,y)=\\sqrt{x^2+y^2}$，$(x_0,y_0)=(3,4)$，$f=5$，\n$f_x=x/\\sqrt{x^2+y^2}=0.6$，$f_y=y/\\sqrt{x^2+y^2}=0.8$，$\\Delta x=0.01,\\ \\Delta y=-0.02$，故\n\n$$\\mathrm{d}z=0.6(0.01)+0.8(-0.02)=-0.01,\\qquad \\text{原式}\\approx 4.99 .$$\n\n### 7. 两点补充\n\n- **形式不变性**：若 $z=f(u,v)$ 可微，而 $u=u(x,y),v=v(x,y)$ 也可微，则 $\\mathrm{d}z=f_u\\,\\mathrm{d}u+f_v\\,\\mathrm{d}v$ 仍成立，无论 $u,v$ 是自变量还是中间变量。这是一元「一阶微分形式不变性」的推广。\n- **推广到 $n$ 元**：$f(x_1,\\dots,x_n)$ 可微时 $\\mathrm{d}f=\\sum_{i=1}^{n}\\frac{\\partial f}{\\partial x_i}\\mathrm{d}x_i$，可微的判别与充分条件（偏导连续）完全平行。\n\n---\n\n**一句话总结**：偏导数描述沿单个坐标方向的变化率；全微分则要求函数在点附近整体可被一个**线性函数**逼近，其系数恰为各偏导数，即 $\\mathrm{d}z=f_x\\mathrm{d}x+f_y\\mathrm{d}y$。二者不是等价概念：偏导数存在只是可微的必要条件，偏导数连续才是可微的充分条件。",
+        "meta": {
+          "finishReason": "stop",
+          "contentLength": 3631,
+          "reasoningContentLength": 1991,
+          "usage": {
+            "prompt_tokens": 415,
+            "completion_tokens": 2941,
+            "total_tokens": 3356,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 965
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 415
+          }
+        },
+        "evaluation": {
+          "pass": true,
+          "checks": [
+            {
+              "name": "separate-unexplained-prerequisite",
+              "pass": true,
+              "observed": {
+                "partial": 17,
+                "target": 9,
+                "prerequisiteSection": 3,
+                "targetSection": 726,
+                "separate": true
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "rubricVersion": 2,
+  "rescoredAt": "2026-11-04T13:34:02.005Z",
+  "summary": {
+    "baselinePasses": 1,
+    "guardedPasses": 4,
+    "totalCases": 4
+  }
+}

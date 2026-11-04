@@ -8,7 +8,7 @@
  * The generated report keeps raw outputs and simple rubric outcomes; it does
  * not claim a statistically validated concept-ordering accuracy.
  */
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildSemanticFixtures } from './memory-semantic-fixtures.mjs'
@@ -18,6 +18,8 @@ const baseUrl = process.env.DSH_EVAL_BASE_URL
 const apiKey = process.env.DSH_EVAL_API_KEY
 const model = process.env.DSH_EVAL_MODEL
 const dryRun = process.argv.includes('--dry-run')
+const rescoreIndex = process.argv.indexOf('--rescore')
+const RUBRIC_VERSION = 2
 
 function promptFor(fixture, guarded) {
   const system = [
@@ -47,14 +49,18 @@ function evaluate(fixture, text) {
   if (fixture.id === 'multiple-prerequisites-order') {
     const partial = answer.indexOf('一元函数')
     const multivariate = answer.indexOf('多元函数')
-    const target = answer.indexOf('多元复合函数')
-    const pass = partial >= 0 && multivariate >= 0 && (target < 0 || (partial < target && multivariate < target))
+    const prerequisiteSection = answer.search(/(?:必要前置|前置[一二1-9]?[:：]|先说明.{0,12}前置|先各给.{0,12}前置)/u)
+    const targetSection = answer.search(/(?:正题[:：]|正式讲解|目标概念[:：])/u)
+    const pass = partial >= 0
+      && multivariate >= 0
+      && prerequisiteSection >= 0
+      && targetSection > prerequisiteSection
     return {
       pass,
       checks: [{
-        name: 'prerequisites-before-target',
+        name: 'separate-prerequisite-sections-before-formal-target',
         pass,
-        observed: { partial, multivariate, target },
+        observed: { partial, multivariate, prerequisiteSection, targetSection },
       }],
     }
   }
@@ -68,14 +74,22 @@ function evaluate(fixture, text) {
   if (fixture.id === 'unexplained-prerequisite') {
     const partial = answer.indexOf('偏导数')
     const target = answer.indexOf('全微分')
-    const separate = /先|前置|基础|前置说明/.test(answer)
-    const pass = partial >= 0 && separate && (target < 0 || partial < target)
+    const prerequisiteSection = answer.search(
+      /(?:先说明前提|先单独讲|前置概念|前置一|必要前置)/u,
+    )
+    const targetSection = answer.search(
+      /(?:^|\n)#{1,3}\s*(?:二|2)[\.、:]?\s*全微分|(?:^|\n)#{1,3}\s*正式讲解/u,
+    )
+    const separate = prerequisiteSection >= 0
+      && targetSection > prerequisiteSection
+      && partial >= 0
+      && target >= 0
     return {
-      pass,
+      pass: separate,
       checks: [{
         name: 'separate-unexplained-prerequisite',
-        pass,
-        observed: { partial, target, separate },
+        pass: separate,
+        observed: { partial, target, prerequisiteSection, targetSection, separate },
       }],
     }
   }
@@ -94,7 +108,11 @@ async function callModel(messages) {
       model,
       messages,
       temperature: 0.2,
-      max_tokens: 1200,
+      // Reasoning-capable providers may spend most of this budget internally
+      // before emitting visible content. Keep the visible answer budget high
+      // enough that an empty content string is treated as a failed sample, not
+      // as a semantic result.
+      max_tokens: 4096,
     }),
   })
   const body = await response.json().catch(async () => ({ raw: await response.text() }))
@@ -103,10 +121,72 @@ async function callModel(messages) {
     error.body = body
     throw error
   }
-  return body?.choices?.[0]?.message?.content ?? ''
+  const choice = body?.choices?.[0]
+  const message = choice?.message ?? {}
+  return {
+    text: typeof message.content === 'string' ? message.content : '',
+    meta: {
+      finishReason: choice?.finish_reason ?? null,
+      contentLength: typeof message.content === 'string' ? message.content.length : 0,
+      // Never persist reasoning text. A length is enough to diagnose budget
+      // exhaustion without retaining hidden chain-of-thought.
+      reasoningContentLength: typeof message.reasoning_content === 'string'
+        ? message.reasoning_content.length
+        : 0,
+      usage: body?.usage ?? null,
+    },
+  }
+}
+
+async function callModelWithRetry(messages) {
+  let last
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    last = await callModel(messages)
+    if (last.text.trim().length > 0) return last
+    last.meta.attempt = attempt
+  }
+  return last
 }
 
 async function main() {
+  if (rescoreIndex >= 0) {
+    const inputPath = process.argv[rescoreIndex + 1]
+    if (typeof inputPath !== 'string' || inputPath.length === 0) {
+      throw new Error('usage: memory-semantic-eval.mjs --rescore <report.json>')
+    }
+    const report = JSON.parse(await readFile(inputPath, 'utf8'))
+    if (report?.kind !== 'dsh-memory-semantic-pilot' || !Array.isArray(report.cases)) {
+      throw new Error('input is not a dsh-memory-semantic-pilot report')
+    }
+    const fixtureById = new Map(buildSemanticFixtures().map(fixture => [fixture.id, fixture]))
+    for (const item of report.cases) {
+      const fixture = fixtureById.get(item.id)
+      if (fixture === undefined) continue
+      if (item.baseline?.text !== undefined) {
+        item.baseline.evaluation = evaluate(fixture, item.baseline.text)
+      }
+      if (item.guarded?.text !== undefined) {
+        item.guarded.evaluation = evaluate(fixture, item.guarded.text)
+      }
+    }
+    report.rubricVersion = RUBRIC_VERSION
+    report.rescoredAt = new Date().toISOString()
+    report.summary = {
+      baselinePasses: report.cases.filter(item => item.baseline?.evaluation?.pass === true).length,
+      guardedPasses: report.cases.filter(item => item.guarded?.evaluation?.pass === true).length,
+      totalCases: report.cases.length,
+    }
+    const outputDirectory = path.join(projectRoot, 'docs')
+    await mkdir(outputDirectory, { recursive: true })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const output = path.join(outputDirectory, `semantic-eval-rescored-${stamp}.json`)
+    await writeFile(output, `${JSON.stringify(report, null, 2)}\n`, 'utf8')
+    process.stdout.write(
+      `wrote ${output}\nbaseline rubric passes: ${report.summary.baselinePasses}/${report.summary.totalCases}\n`
+      + `guarded rubric passes: ${report.summary.guardedPasses}/${report.summary.totalCases} (pilot only)\n`,
+    )
+    return
+  }
   if (!dryRun && (!baseUrl || !apiKey || !model)) {
     throw new Error('set DSH_EVAL_BASE_URL, DSH_EVAL_API_KEY, and DSH_EVAL_MODEL; use --dry-run to inspect prompts')
   }
@@ -114,6 +194,7 @@ async function main() {
   const report = {
     schemaVersion: 1,
     kind: 'dsh-memory-semantic-pilot',
+    rubricVersion: RUBRIC_VERSION,
     createdAt: new Date().toISOString(),
     model: model ?? '(dry-run)',
     endpoint: baseUrl ? `${baseUrl.replace(/\/+$/, '')}/chat/completions` : '(dry-run)',
@@ -132,14 +213,29 @@ async function main() {
       })
       continue
     }
-    const baseline = await callModel(baselinePrompt)
-    const guarded = await callModel(guardedPrompt)
+    const baseline = await callModelWithRetry(baselinePrompt)
+    const guarded = await callModelWithRetry(guardedPrompt)
     report.cases.push({
       id: fixture.id,
       rubric: fixture.rubric,
-      baseline: { text: baseline, evaluation: evaluate(fixture, baseline) },
-      guarded: { text: guarded, evaluation: evaluate(fixture, guarded) },
+      baseline: {
+        text: baseline.text,
+        meta: baseline.meta,
+        evaluation: evaluate(fixture, baseline.text),
+      },
+      guarded: {
+        text: guarded.text,
+        meta: guarded.meta,
+        evaluation: evaluate(fixture, guarded.text),
+      },
     })
+  }
+  if (!dryRun) {
+    report.summary = {
+      baselinePasses: report.cases.filter(item => item.baseline?.evaluation?.pass === true).length,
+      guardedPasses: report.cases.filter(item => item.guarded?.evaluation?.pass === true).length,
+      totalCases: report.cases.length,
+    }
   }
   const outputDirectory = path.join(projectRoot, 'docs')
   await mkdir(outputDirectory, { recursive: true })

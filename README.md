@@ -306,7 +306,7 @@ More troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md).
 |---|---|
 | DSH `0.2.1-rc.3` | Tested locally: Cordis loader smoke, public API integration tests, real `ToolRuntime` schema registration/execution, clean-profile install/uninstall smoke |
 | Other DSH versions in `engines.dsh` | Accepted by the range but **not tested** |
-| Memory curation | Deterministic tests A–K and semantic fixtures pass; real-model pilot harness is present but no real-model improvement claim has been established |
+| Memory curation | Deterministic tests A–L pass; real-model pilot completed (4 cases, baseline 1/4 vs guarded 4/4 under rubric v2); single-run pilot, not statistically validated |
 | Node.js 24.21.0 on Windows 11 | Tested locally |
 | Node.js 22.19 / other operating systems | CI matrix is configured; not yet claimed as locally verified |
 | DSH private APIs / private plugin source | Not used. See [docs/architecture.md](docs/architecture.md#public-api-dependencies) |

@@ -50,13 +50,15 @@ The output file records:
 | Fixture | Pass condition |
 |---|---|
 | partial-derivative-isolation | The guarded answer contains zero occurrences of “链式法则”. |
-| multiple-prerequisites-order | Both prerequisite names occur, and both appear before the target name. |
+| multiple-prerequisites-order | Both prerequisite names occur, an explicit prerequisite section is present, and a formal target section (“正题/正式讲解/目标概念”) appears after it. |
 | goal-over-temporary | The answer mentions the long-term theory/system goal while giving the current technique. |
-| unexplained-prerequisite | The answer mentions “偏导数”, contains an explicit separation marker (“先/前置/基础/前置说明”), and puts it before “全微分”. |
+| unexplained-prerequisite | A “先说明前提/先单独讲/前置概念” section exists before the formal total-differential section, and both prerequisite and target terms are present. |
 
 These are coarse pilot checks. They can miss semantic equivalence and can be
-gamed by keyword insertion. They must not be reported as a general concept
-ordering accuracy.
+gamed by section headings. They must not be reported as a general concept
+ordering accuracy. Rubric v2 intentionally checks prerequisite sections rather
+than the first mention of the target name, because a good answer may name the
+target in its opening sentence before explaining prerequisites.
 
 ## Current status in this tree
 
@@ -64,11 +66,16 @@ ordering accuracy.
 - Real Cordis loader: implemented and passing when `DSH_CHECKOUT` is available.
 - Real DSH `ToolRuntime` JSON-Schema registration and tool execution:
   implemented and passing when `DSH_CHECKOUT` is available.
-- Real-model semantic pilot: harness implemented; **no real-model run is
-  claimed in this development environment** because no `DSH_EVAL_*` API
-  credentials were configured. Do not describe this version as having
-  demonstrated model-level improvement until a report file exists and has been
-  reviewed.
+- Real-model semantic pilot: **completed for the fixed four-case pilot on
+  2026-11-04** using the public DeepSeek-compatible endpoint and API model
+  `deepseek-flash`. The provider rejected the display name
+  `DeepSeek-V4.1-Flash 1017` and listed `deepseek-flash` / `deepseek-v4-pro`
+  as API model ids.
+- Pilot result under the section-aware rubric v2: baseline 1/4, guarded 4/4.
+  This is a single-run pilot, not a statistical accuracy claim.
+- Full report: [semantic-acceptance-report-2026-11-04.md](semantic-acceptance-report-2026-11-04.md).
+  Sanitized raw output:
+  [semantic-acceptance-run-2026-11-04.json](semantic-acceptance-run-2026-11-04.json).
 
 ## Reproducibility notes
 

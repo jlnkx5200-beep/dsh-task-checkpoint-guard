@@ -360,7 +360,10 @@ output are retained. No concept-sorting accuracy percentage is claimed here.
   implemented and verified with `DSH_CHECKOUT` pointing at the local
   `deepseek-harness` checkout.
 - Deterministic semantic regression fixtures: passing.
-- Real-model semantic pilot: public-API harness implemented; no API credentials
-  were configured during this development run, so no real-model improvement
-  claim is made. See [semantic-acceptance.md](semantic-acceptance.md).
+- Real-model semantic pilot: completed on 2026-11-04 through the public
+  DeepSeek-compatible endpoint with API model `deepseek-flash`. Four cases,
+  baseline and guarded prompts. Pilot result under section-aware rubric v2:
+  baseline 1/4, guarded 4/4. This is a single-run pilot, not a statistically
+  validated accuracy claim. See
+  [semantic-acceptance-report-2026-11-04.md](semantic-acceptance-report-2026-11-04.md).
 - No push, tag, or GitHub Release has been created.
