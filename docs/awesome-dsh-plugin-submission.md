@@ -34,7 +34,7 @@ Release: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/t
 
 ## 2. Pre-submission verification
 
-- [x] Package version is `0.2.0`.
+- [x] Package version is `0.2.1`.
 - [x] `package.json` declares `dsh.bundle.patch`.
 - [x] `cordis.patch.yml` is present and composes the bundle row.
 - [x] Public tarball URL resolves and the SHA-256 matches.
@@ -49,9 +49,15 @@ Release: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/t
 - [x] Automated test evidence is reproducible from the documented environment.
 - [x] The semantic pilot is described as a four-case, single-run pilot.
 - [x] No security-audit claim is made.
-- [ ] API key used in the semantic pilot has been rotated in the provider console.
-- [ ] The awesome PR changes exactly one new YAML file and no existing entries.
-- [ ] The generated README files are not hand-edited in the PR.
+- [x] API key used in the semantic pilot has been rotated/deleted by the owner.
+- [x] The awesome PR changes exactly one new YAML file and no existing entries.
+- [x] The generated README files are not hand-edited in the PR.
+
+Pull request: <https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/12052>
+
+- Head: `jlnkx5200-beep:add/dsh-task-checkpoint-guard`
+- Base: `awesome-dsh-plugin:main`
+- Compare: one added file, zero deletions in other files.
 
 ## 3. Pull request format
 
