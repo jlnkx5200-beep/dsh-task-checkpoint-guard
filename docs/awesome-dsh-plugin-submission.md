@@ -26,8 +26,11 @@ description:
 tarball: https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/download/v0.2.1/dsh-task-checkpoint-guard-0.2.1.tgz
 ```
 
-The v0.2.1 tarball URL and SHA-256 must be verified after the patch release is
-published. The list supports the optional `tarball:` field for GitHub Releases.
+The v0.2.1 tarball URL resolves and the downloaded asset matches SHA-256
+`fcaa372425769f2a3b098d09589838208dd4cce71c0d979a134333d6c3790829`.
+The list supports the optional `tarball:` field for GitHub Releases.
+
+Release: <https://github.com/jlnkx5200-beep/dsh-task-checkpoint-guard/releases/tag/v0.2.1>
 
 ## 2. Pre-submission verification
 
